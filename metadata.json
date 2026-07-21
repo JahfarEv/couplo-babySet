@@ -1,0 +1,6 @@
+{
+  "name": "Lullaby & Lace",
+  "description": "Nurturing elegance for your little ones. Premium baby clothing, essentials, toys, and accessories curated with love.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+
+  --color-primary: #71585b;
+  --color-primary-container: #f8d7da;
+  --color-on-primary-container: #755c5f;
+  --color-primary-fixed: #fcdbde;
+  --color-primary-fixed-dim: #debfc2;
+  
+  --color-secondary: #4b626c;
+  --color-secondary-container: #cee6f3;
+  --color-on-secondary-container: #516873;
+  
+  --color-tertiary: #5e5e5c;
+  --color-tertiary-container: #e0dfdb;
+  --color-on-tertiary-container: #62625f;
+  
+  --color-background: #fbf9f8;
+  --color-on-background: #1b1c1c;
+  
+  --color-surface: #fbf9f8;
+  --color-surface-dim: #dbd9d9;
+  --color-surface-bright: #fbf9f8;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f5f3f3;
+  --color-surface-container: #efeded;
+  --color-surface-container-high: #eae8e7;
+  --color-surface-container-highest: #e4e2e2;
+  
+  --color-on-surface: #1b1c1c;
+  --color-on-surface-variant: #4f4445;
+  --color-inverse-surface: #303030;
+  --color-inverse-on-surface: #f2f0f0;
+  --color-outline: #817475;
+  --color-outline-variant: #d2c3c4;
+}
+
+@layer base {
+  body {
+    @apply font-sans bg-background text-on-surface antialiased;
+  }
+}
