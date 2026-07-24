@@ -13,7 +13,7 @@ export function buildWhatsAppOrderMessage(
 
   let message = `Hi Couplo Baby Sets! 🌸 I would love to place a *customized order*:\n\n`;
   message += `*Product:* ${product.name}\n`;
-  message += `• Price: $${product.price.toFixed(2)}\n`;
+  message += `• Price: ₹${product.price.toFixed(2)}\n`;
   message += `• Size: ${actualSize}\n`;
   message += `• Color: ${actualColor}\n`;
 

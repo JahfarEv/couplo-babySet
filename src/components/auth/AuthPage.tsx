@@ -1132,6 +1132,7 @@ import {
   orderBy,
 } from "firebase/firestore";
 import { auth, db } from "../../firebase";
+import { orderService } from "../../services/orderService";
 
 interface AuthPageProps {
   currentUser: User | null;
@@ -1229,100 +1230,11 @@ export default function AuthPage({
       setOrdersLoading(true);
       console.log("📦 Fetching orders for user:", userId);
 
-      let fetchedOrders: any[] = [];
+      const userOrders = await orderService.getUserOrders(userId);
 
-      // METHOD 1: Try root orders collection
-      try {
-        console.log("🔍 Querying root orders collection...");
-        const ordersRef = collection(db, "orders");
-        const q = query(
-          ordersRef,
-          where("userId", "==", userId),
-          orderBy("createdAt", "desc"),
-        );
-        const querySnapshot = await getDocs(q);
-
-        fetchedOrders = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-
-        console.log("✅ Orders from root collection:", fetchedOrders.length);
-      } catch (rootError) {
-        console.warn("⚠️ Failed from root collection:", rootError);
-      }
-
-      // If no orders found with userId filter, try getting ALL orders and filter manually
-      if (fetchedOrders.length === 0) {
-        try {
-          console.log("🔍 Fetching ALL orders (fallback)...");
-          const ordersRef = collection(db, "orders");
-          const querySnapshot = await getDocs(ordersRef);
-
-          // Filter orders manually with proper type casting
-          const allOrders = querySnapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          })) as OrderData[];
-
-          console.log("📊 Total orders in DB:", allOrders.length);
-
-          // Check if any order has userId that matches OR if the order might be associated with this user
-          const matchedOrders = allOrders.filter((order) => {
-            // Check if userId matches
-            if (order.userId && order.userId === userId) return true;
-            // Check if userEmail matches current user's email
-            if (order.userEmail && order.userEmail === currentUser?.email) return true;
-            // Check if userName matches current user's name
-            if (order.userName && order.userName === currentUser?.name) return true;
-            return false;
-          });
-
-          fetchedOrders = matchedOrders;
-          console.log("✅ Orders from manual filter:", fetchedOrders.length);
-          
-          // Log matched orders for debugging
-          if (matchedOrders.length > 0) {
-            console.log("📋 Matched orders:", matchedOrders.map(o => ({
-              id: o.id,
-              userId: o.userId,
-              userEmail: o.userEmail,
-              userName: o.userName
-            })));
-          }
-        } catch (error) {
-          console.warn("⚠️ Failed to fetch all orders:", error);
-        }
-      }
-
-      // If no orders in root, try user subcollection
-      if (fetchedOrders.length === 0) {
-        try {
-          console.log("🔍 Querying user subcollection...");
-          const userOrdersRef = collection(db, "users", userId, "orders");
-          const q = query(userOrdersRef, orderBy("createdAt", "desc"));
-          const querySnapshot = await getDocs(q);
-
-          fetchedOrders = querySnapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          }));
-
-          console.log(
-            "✅ Orders from user subcollection:",
-            fetchedOrders.length,
-          );
-        } catch (subError) {
-          console.warn("⚠️ Failed from subcollection:", subError);
-        }
-      }
-
-      // Fixed: Better filtering for welcome orders
-      const filteredOrders = fetchedOrders.filter((order) => {
-        // Skip if no data
+      const filteredOrders = userOrders.filter((order) => {
         if (!order) return false;
-
-        const status = order.status || "";
+        const status = (order.status || "") as string;
         const isWelcome =
           status === "Welcome" ||
           status === "welcome" ||
@@ -1334,45 +1246,10 @@ export default function AuthPage({
         return !isWelcome;
       });
 
-      console.log("📊 Orders before filtering:", fetchedOrders.length);
-      console.log("📊 Orders after filtering:", filteredOrders.length);
-
-      // Log the actual orders for debugging
-      if (filteredOrders.length > 0) {
-        console.log("📋 First order:", filteredOrders[0]);
-      }
-
+      console.log("📊 Loaded user orders count:", filteredOrders.length);
       setOrders(filteredOrders);
-
-      // Save to localStorage as cache
-      if (filteredOrders.length > 0) {
-        localStorage.setItem(
-          `couplo_orders_${userId}`,
-          JSON.stringify(filteredOrders),
-        );
-        console.log("💾 Orders saved to localStorage:", filteredOrders.length);
-      } else {
-        // Clear localStorage if no orders
-        localStorage.removeItem(`couplo_orders_${userId}`);
-        console.log("🗑️ No orders to cache, cleared localStorage");
-      }
     } catch (error) {
       console.error("❌ Failed to fetch orders:", error);
-
-      // Try localStorage as fallback
-      try {
-        const storedOrders = localStorage.getItem(`couplo_orders_${userId}`);
-        if (storedOrders) {
-          const parsedOrders = JSON.parse(storedOrders);
-          console.log("📦 Orders from localStorage:", parsedOrders.length);
-          setOrders(parsedOrders);
-        } else {
-          setOrders([]);
-        }
-      } catch (localError) {
-        console.warn("⚠️ No orders in localStorage:", localError);
-        setOrders([]);
-      }
     } finally {
       setOrdersLoading(false);
     }
@@ -1597,19 +1474,19 @@ export default function AuthPage({
 
   const formatTotal = (order: any) => {
     if (typeof order.total === "number") {
-      return `$${order.total.toFixed(2)}`;
+      return `₹${order.total.toFixed(2)}`;
     }
     if (
       order.total &&
       typeof order.total === "string" &&
-      order.total.startsWith("$")
+      order.total.startsWith("₹")
     ) {
       return order.total;
     }
     if (order.subtotal && typeof order.subtotal === "number") {
-      return `$${order.subtotal.toFixed(2)}`;
+      return `₹${order.subtotal.toFixed(2)}`;
     }
-    return "$0.00";
+    return "₹0.00";
   };
 
   return (
@@ -1669,19 +1546,7 @@ export default function AuthPage({
                     <ArrowLeft className="w-4 h-4" />
                     Back to Shopping
                   </button>
-                  <button
-                    onClick={debugFirestore}
-                    className="w-full py-3 bg-purple-50 text-purple-600 hover:bg-purple-100 text-sm font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    🔍 Debug Orders
-                  </button>
-                  <button
-                    onClick={clearCache}
-                    className="w-full py-3 bg-orange-50 text-orange-600 hover:bg-orange-100 text-sm font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    Clear Cache
-                  </button>
+                
                   <button
                     onClick={handleLogoutUser}
                     className="w-full py-3 bg-red-50 text-red-600 hover:bg-red-100 text-sm font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"

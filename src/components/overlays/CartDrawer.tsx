@@ -405,7 +405,7 @@ export default function CartDrawer({
                             {item.product.name}
                           </h4>
                           <span className="font-serif font-bold text-sm text-primary shrink-0">
-                            ${(item.product.price * item.quantity).toFixed(2)}
+                            ₹{(item.product.price * item.quantity).toFixed(2)}
                           </span>
                         </div>
                         <p className="text-[10px] text-outline uppercase font-semibold mt-0.5">
@@ -472,7 +472,7 @@ export default function CartDrawer({
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-outline">Subtotal</span>
-                    <span className="font-semibold text-on-surface">${subtotal.toFixed(2)}</span>
+                    <span className="font-semibold text-on-surface">₹{subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-xs">
                     <span className="text-outline">Shipping</span>
@@ -480,7 +480,7 @@ export default function CartDrawer({
                   </div>
                   <div className="border-t border-primary/5 pt-2 flex justify-between text-base">
                     <span className="font-serif font-bold text-on-surface">Total Amount</span>
-                    <span className="font-serif font-bold text-primary">${subtotal.toFixed(2)}</span>
+                    <span className="font-serif font-bold text-primary">₹{subtotal.toFixed(2)}</span>
                   </div>
                 </div>
 

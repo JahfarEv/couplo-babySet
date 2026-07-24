@@ -91,7 +91,7 @@ export default function SearchOverlay({
                             {p.name}
                           </span>
                           <span className="text-xs text-primary font-medium text-left">
-                            ${p.price.toFixed(2)}
+                            ₹{p.price.toFixed(2)}
                           </span>
                         </div>
                         <ArrowRight className="w-4 h-4 text-primary opacity-60" />

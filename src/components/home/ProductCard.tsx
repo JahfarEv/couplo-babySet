@@ -53,7 +53,7 @@ export default function ProductCard({ product, onQuickView, onAddToCart }: Produ
 
         <div className="mt-4">
           <p className="text-lg font-serif font-bold text-primary mb-3">
-            ${product.price.toFixed(2)}
+            ₹{product.price.toFixed(2)}
           </p>
           <div className="flex flex-row gap-2">
             <button

@@ -638,7 +638,7 @@ function StepBabyInfo({ product, customization, onChange }: StepProps) {
         />
         <div className="min-w-0">
           <p className="text-xs font-semibold text-on-surface truncate">{product.name}</p>
-          <p className="text-xs text-primary font-bold">${product.price.toFixed(2)}</p>
+          <p className="text-xs text-primary font-bold">₹{product.price.toFixed(2)}</p>
         </div>
       </div>
     </div>
@@ -888,7 +888,7 @@ function StepReview({
         />
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-on-surface">{product.name}</p>
-          <p className="text-primary font-bold text-sm">${(product.price * quantity).toFixed(2)}</p>
+          <p className="text-primary font-bold text-sm">₹{(product.price * quantity).toFixed(2)}</p>
           <p className="text-[10px] text-on-surface-variant mt-0.5">Customized · {quantity} unit{quantity > 1 ? "s" : ""}</p>
         </div>
       </div>

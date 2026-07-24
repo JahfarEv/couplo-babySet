@@ -76,7 +76,7 @@ export default function Footer({ onCategoryClick, onShowToast }: FooterProps) {
             <li>
               <button
                 onClick={() =>
-                  onShowToast("Shipping policy is 100% free above orders of $60.", "info")
+                  onShowToast("Shipping policy is 100% free above orders of ₹999.", "info")
                 }
                 className="hover:text-primary transition-colors hover:underline text-left"
               >

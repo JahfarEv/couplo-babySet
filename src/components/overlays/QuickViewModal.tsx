@@ -1,6 +1,8 @@
-import { X, Star, Headphones, ShoppingBag } from "lucide-react";
+import { X, Star, Headphones, ShoppingBag, MessageSquare, Send } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { Product } from "../../types";
+import { Product, ProductReview, User } from "../../types";
+import { useState, useEffect } from "react";
+import { reviewService } from "../../services/reviewService";
 
 interface QuickViewModalProps {
   product: Product | null;
@@ -9,6 +11,7 @@ interface QuickViewModalProps {
   onClose: () => void;
   onOrder: (product: Product, quantity: number) => void;
   onAddToCart: (product: Product, quantity: number) => void;
+  currentUser?: User | null;
 }
 
 export default function QuickViewModal({
@@ -18,7 +21,56 @@ export default function QuickViewModal({
   onClose,
   onOrder,
   onAddToCart,
+  currentUser,
 }: QuickViewModalProps) {
+  const [reviews, setReviews] = useState<ProductReview[]>([]);
+  const [isFetchingReviews, setIsFetchingReviews] = useState(false);
+  const [newReviewRating, setNewReviewRating] = useState(5);
+  const [newReviewComment, setNewReviewComment] = useState("");
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+
+  useEffect(() => {
+    if (product) {
+      setIsFetchingReviews(true);
+      reviewService.getReviewsByProduct(product.id)
+        .then(setReviews)
+        .catch(console.error)
+        .finally(() => setIsFetchingReviews(false));
+    } else {
+      setReviews([]);
+    }
+  }, [product]);
+
+  const handleAddReview = async () => {
+    if (!product || !newReviewComment.trim()) return;
+    
+    setIsSubmittingReview(true);
+    
+    const userName = currentUser?.name || "Anonymous User";
+    const userId = currentUser?.id || "anon-" + Date.now();
+
+    const newReview = await reviewService.addReview({
+      productId: product.id,
+      userId,
+      userName,
+      rating: newReviewRating,
+      comment: newReviewComment.trim()
+    });
+
+    if (newReview) {
+      setReviews(prev => [newReview, ...prev]);
+      setNewReviewComment("");
+      setNewReviewRating(5);
+    }
+    
+    setIsSubmittingReview(false);
+  };
+
+  const dynamicRating = reviews.length > 0 
+    ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length 
+    : product?.rating || 5;
+  const dynamicRatingCount = reviews.length > 0 ? reviews.length : (product?.ratingCount || 0);
+
   return (
     <AnimatePresence>
       {product && (
@@ -76,20 +128,20 @@ export default function QuickViewModal({
                     {[1, 2, 3, 4, 5].map((i) => (
                       <Star
                         key={i}
-                        className={`w-3.5 h-3.5 ${i <= Math.floor(product.rating) ? "fill-[#FFC107] text-[#FFC107]" : "text-outline-variant"}`}
+                        className={`w-3.5 h-3.5 ${i <= Math.round(dynamicRating) ? "fill-[#FFC107] text-[#FFC107]" : "text-outline-variant"}`}
                       />
                     ))}
                   </div>
                   <span className="text-[13px] text-on-surface-variant font-semibold ml-1">
-                    {product.rating.toFixed(1)}
+                    {dynamicRating.toFixed(1)}
                   </span>
                   <span className="text-[12px] text-outline">
-                    ({product.ratingCount} reviews)
+                    ({dynamicRatingCount} reviews)
                   </span>
                 </div>
 
                 <span className="text-2xl font-serif font-bold text-primary">
-                  ${product.price.toFixed(2)}
+                  ₹{product.price.toFixed(2)}
                 </span>
 
                 <div className="rounded-2xl bg-surface-container-low border border-primary/10 p-4 md:p-5">
@@ -99,6 +151,79 @@ export default function QuickViewModal({
                   <p className="text-sm text-on-surface-variant leading-6">
                     {product.description || "Thoughtfully made for everyday comfort, gifting, and gentle baby care."}
                   </p>
+                </div>
+
+                {/* Reviews Section */}
+                <div className="mt-2 border-t border-outline-variant/30 pt-6">
+                  <h3 className="text-lg font-serif font-bold text-on-surface mb-4 flex items-center gap-2">
+                    <MessageSquare className="w-5 h-5 text-primary" />
+                    Customer Reviews
+                  </h3>
+                  
+                  {/* Add Review Form */}
+                  <div className="bg-surface-container-low rounded-xl p-4 mb-6 border border-outline-variant/20">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-outline mb-3">Write a Review</h4>
+                    <div className="flex items-center gap-1 mb-3">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          onClick={() => setNewReviewRating(star)}
+                          className="p-1 hover:scale-110 transition-transform bg-transparent border-none cursor-pointer"
+                        >
+                          <Star className={`w-5 h-5 ${star <= newReviewRating ? "fill-[#FFC107] text-[#FFC107]" : "text-outline-variant"}`} />
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Share your thoughts..."
+                        value={newReviewComment}
+                        onChange={(e) => setNewReviewComment(e.target.value)}
+                        className="flex-1 bg-surface border border-outline-variant/30 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary/50 text-on-surface"
+                      />
+                      <button
+                        onClick={handleAddReview}
+                        disabled={isSubmittingReview || !newReviewComment.trim()}
+                        className="bg-primary text-white p-2 rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors border-none cursor-pointer flex items-center justify-center"
+                      >
+                        <Send className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Reviews List */}
+                  <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                    {isFetchingReviews ? (
+                      <p className="text-sm text-outline animate-pulse text-center py-4">Loading reviews...</p>
+                    ) : reviews.length === 0 ? (
+                      <p className="text-sm text-outline text-center py-4 bg-surface-container-lowest rounded-xl border border-dashed border-outline-variant/30">
+                        No reviews yet. Be the first to share your experience!
+                      </p>
+                    ) : (
+                      reviews.map((review) => (
+                        <div key={review.id} className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/10 shadow-sm">
+                          <div className="flex justify-between items-start mb-2">
+                            <span className="font-semibold text-sm text-on-surface">{review.userName}</span>
+                            <span className="text-[10px] text-outline">
+                              {new Date(review.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-0.5 mb-2">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star
+                                key={star}
+                                className={`w-3 h-3 ${star <= review.rating ? "fill-[#FFC107] text-[#FFC107]" : "text-outline-variant/30"}`}
+                              />
+                            ))}
+                          </div>
+                          <p className="text-sm text-on-surface-variant leading-relaxed">
+                            {review.comment}
+                          </p>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
               </div>
 

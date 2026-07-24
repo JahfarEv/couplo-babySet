@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { Star, Quote, ChevronLeft, ChevronRight } from "lucide-react";
+import { reviewService } from "../../services/reviewService";
+import { useUserProducts } from "../../hooks/useProducts";
 
 interface Review {
-  id: number;
+  id: string | number;
   name: string;
   location: string;
   avatar: string;
@@ -15,92 +17,7 @@ interface Review {
   verified: boolean;
 }
 
-const REVIEWS: Review[] = [
-  {
-    id: 1,
-    name: "Sarah Mitchell",
-    location: "New York, USA",
-    avatar: "SM",
-    rating: 5,
-    caption: "Absolutely in love with this set!",
-    review:
-      "The quality of the fabric is just incredible — so soft against my baby's skin. We've had zero rashes and she looks adorable in it. Worth every penny and then some!",
-    productName: "Organic Ribbed Onesie",
-    productImage: "/babyset/frok1.jpeg",
-    date: "June 20, 2026",
-    verified: true,
-  },
-  {
-    id: 2,
-    name: "Priya Sharma",
-    location: "London, UK",
-    avatar: "PS",
-    rating: 5,
-    caption: "The perfect baby shower gift!",
-    review:
-      "I ordered the Sweet Dreams Knit Gift Set for my sister's baby shower and everyone was blown away. The packaging was stunning and the quality felt so luxurious. Definitely ordering again!",
-    productName: "Sweet Dreams Knit Gift Set",
-    productImage: "/babyset/set14.jpeg",
-    date: "June 15, 2026",
-    verified: true,
-  },
-  {
-    id: 3,
-    name: "Emily Torres",
-    location: "Sydney, Australia",
-    avatar: "ET",
-    rating: 5,
-    caption: "Softest romper we've ever tried!",
-    review:
-      "My 3-month-old practically melted into this romper — it's so breathable and light. The linen-cotton blend is perfect for warm days. The coconut shell buttons are such a thoughtful touch.",
-    productName: "Linen Blend Knit Romper",
-    productImage: "/babyset/fullRomber1.jpeg",
-    date: "June 5, 2026",
-    verified: true,
-  },
-  {
-    id: 4,
-    name: "Amara Osei",
-    location: "Toronto, Canada",
-    avatar: "AO",
-    rating: 4,
-    caption: "Beautiful prints, great quality!",
-    review:
-      "The Earth Tones Swaddle Set is exactly what I was looking for. The muslin material gets softer with each wash. My baby loves being wrapped up in it. Highly recommend for new parents!",
-    productName: "Earth Tones Swaddle Set",
-    productImage: "/babyset/Half romper1.jpeg",
-    date: "May 28, 2026",
-    verified: true,
-  },
-  {
-    id: 5,
-    name: "Liu Wei",
-    location: "Singapore",
-    avatar: "LW",
-    rating: 5,
-    caption: "Fast shipping and gorgeous packaging!",
-    review:
-      "I was amazed at how quickly my order arrived. The packaging was so elegant — felt like opening a luxury gift. The Knit Gift Set is now my go-to recommendation for every new parent I know.",
-    productName: "Linen Blend Knit Romper",
-    productImage: "/babyset/set19.jpeg",
-    date: "May 20, 2026",
-    verified: true,
-  },
-  {
-    id: 6,
-    name: "Fatima Al-Rashid",
-    location: "Dubai, UAE",
-    avatar: "FA",
-    rating: 5,
-    caption: "My baby's skin has never been happier!",
-    review:
-      "We have very sensitive skin in our family and I was hesitant to try a new brand. But Couplo Baby Sets exceeded all expectations. Zero irritation, silky soft, and the colors are gorgeous. A loyal customer now!",
-    productName: "Linen Blend Knit Romper",
-    productImage: "/babyset/set1.jpeg",
-    date: "May 10, 2026",
-    verified: true,
-  },
-];
+
 
 function StarRating({ rating, size = 16 }: { rating: number; size?: number }) {
   return (
@@ -196,33 +113,139 @@ function ReviewCard({ review, active }: { review: Review; active: boolean }) {
   );
 }
 
+function ReviewSkeleton() {
+  return (
+    <section
+      id="customer-reviews"
+      className="py-24 px-4 md:px-16 bg-surface-container-low relative overflow-hidden"
+    >
+      <div className="max-w-7xl mx-auto">
+        {/* Header skeleton */}
+        <div className="text-center mb-16 space-y-3">
+          <div className="h-3 w-24 bg-outline-variant/40 rounded-full mx-auto animate-pulse" />
+          <div className="h-8 w-64 bg-outline-variant/40 rounded-xl mx-auto animate-pulse" />
+          <div className="h-4 w-80 bg-outline-variant/30 rounded-lg mx-auto animate-pulse" />
+          <div className="inline-flex items-center gap-3 bg-white rounded-2xl shadow-sm px-6 py-4 mt-4 border border-outline-variant/40">
+            <div className="h-10 w-12 bg-outline-variant/40 rounded-lg animate-pulse" />
+            <div className="space-y-1.5">
+              <div className="h-3 w-20 bg-outline-variant/40 rounded animate-pulse" />
+              <div className="h-3 w-28 bg-outline-variant/30 rounded animate-pulse" />
+            </div>
+          </div>
+        </div>
+        {/* Card skeleton */}
+        <div className="bg-white rounded-3xl shadow-[0_20px_60px_rgba(113,88,91,0.08)] overflow-hidden max-w-4xl mx-auto">
+          <div className="flex flex-col md:flex-row">
+            <div className="md:w-2/5 h-64 md:h-72 bg-outline-variant/30 animate-pulse" />
+            <div className="md:w-3/5 p-8 md:p-10 space-y-4">
+              <div className="h-10 w-10 bg-outline-variant/30 rounded-2xl animate-pulse" />
+              <div className="h-3 w-24 bg-amber-200/60 rounded animate-pulse" />
+              <div className="h-6 w-3/4 bg-outline-variant/40 rounded-lg animate-pulse" />
+              <div className="space-y-2 pt-1">
+                <div className="h-3 w-full bg-outline-variant/30 rounded animate-pulse" />
+                <div className="h-3 w-5/6 bg-outline-variant/30 rounded animate-pulse" />
+                <div className="h-3 w-4/6 bg-outline-variant/30 rounded animate-pulse" />
+              </div>
+              <div className="flex items-center gap-3 pt-6 border-t border-outline-variant/30 mt-auto">
+                <div className="h-12 w-12 rounded-full bg-outline-variant/40 animate-pulse flex-shrink-0" />
+                <div className="space-y-1.5 flex-1">
+                  <div className="h-3 w-28 bg-outline-variant/40 rounded animate-pulse" />
+                  <div className="h-3 w-36 bg-outline-variant/30 rounded animate-pulse" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* Dots skeleton */}
+        <div className="flex items-center justify-center gap-2 mt-10">
+          {[0,1,2].map(i => (
+            <div key={i} className="w-2.5 h-2.5 rounded-full bg-outline-variant/40 animate-pulse" />
+          ))}
+        </div>
+        {/* Thumbnail grid skeleton */}
+        <div className="grid grid-cols-3 md:grid-cols-6 gap-3 mt-14">
+          {[0,1,2,3,4,5].map(i => (
+            <div key={i} className="aspect-square rounded-2xl bg-outline-variant/30 animate-pulse" />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function CustomerReviews() {
+  const [liveReviews, setLiveReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { products, loading: productsLoading } = useUserProducts();
+
+  useEffect(() => {
+    if (productsLoading) return;
+    
+    let mounted = true;
+    reviewService.getRecentReviews(10).then((firebaseReviews) => {
+      if (!mounted) return;
+
+      const mapped: Review[] = firebaseReviews.map((r) => {
+        const product = products.find((p) => p.id === r.productId);
+
+        return {
+          id: r.id,
+          name: r.userName,
+          location: "Verified Customer",
+          avatar: r.userName.charAt(0).toUpperCase(),
+          rating: r.rating,
+          caption: r.rating === 5 ? "Absolutely in love!" : "Beautiful quality",
+          review: r.comment,
+          productName: product?.name || "Premium Baby Set",
+          productImage: product?.image || "/babyset/set1.jpeg",
+          date: new Date(r.createdAt).toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          }),
+          verified: true,
+        };
+      });
+
+      setLiveReviews(mapped);
+    }).catch(console.error).finally(() => {
+      if (mounted) setLoading(false);
+    });
+
+    return () => { mounted = false; };
+  }, [productsLoading, products]);
+
+  const displayReviews = liveReviews;
+
   const [activeIndex, setActiveIndex] = useState(0);
   const [autoplay, setAutoplay] = useState(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const totalReviews = REVIEWS.length;
+  const totalReviews = displayReviews.length;
 
   const goNext = () => setActiveIndex((i) => (i + 1) % totalReviews);
   const goPrev = () =>
     setActiveIndex((i) => (i - 1 + totalReviews) % totalReviews);
 
   useEffect(() => {
-    if (autoplay) {
+    if (autoplay && totalReviews > 0) {
       intervalRef.current = setInterval(goNext, 5000);
     }
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [autoplay, activeIndex]);
+  }, [autoplay, activeIndex, totalReviews]);
 
   const pauseAutoplay = () => setAutoplay(false);
   const resumeAutoplay = () => setAutoplay(true);
 
+  if (loading) return <ReviewSkeleton />;
+  if (displayReviews.length === 0) return null;
+
   const avgRating = (
-    REVIEWS.reduce((s, r) => s + r.rating, 0) / REVIEWS.length
+    displayReviews.reduce((s, r) => s + r.rating, 0) / displayReviews.length
   ).toFixed(1);
-  const totalRatings = 654;
+  const totalRatings = displayReviews.length;
 
   return (
     <section
@@ -281,7 +304,7 @@ export default function CustomerReviews() {
         >
           {/* Cards */}
           <div className="relative min-h-[380px] md:min-h-[340px]">
-            {REVIEWS.map((review, i) => (
+            {displayReviews.map((review, i) => (
               <div
                 key={review.id}
                 className={`transition-all duration-500 ${
@@ -310,7 +333,7 @@ export default function CustomerReviews() {
 
             {/* Dots */}
             <div className="flex items-center gap-2">
-              {REVIEWS.map((_, i) => (
+              {displayReviews.map((_, i) => (
                 <button
                   key={i}
                   id={`reviews-dot-${i}`}
@@ -344,7 +367,7 @@ export default function CustomerReviews() {
 
         {/* Mini Thumbnail Grid */}
         <div className="grid grid-cols-3 md:grid-cols-6 gap-3 mt-14">
-          {REVIEWS.map((review, i) => (
+          {displayReviews.map((review, i) => (
             <button
               key={review.id}
               id={`review-thumb-${review.id}`}

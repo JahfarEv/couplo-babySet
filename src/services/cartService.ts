@@ -7,18 +7,21 @@ export const cartService = {
   saveCart: async (userId: string, items: CartItem[]) => {
     try {
       const cartRef = doc(db, "carts", userId);
-      await setDoc(cartRef, {
-        userId: userId,
-        items: items.map(item => ({
-          productId: item.product.id,
-          product: item.product,
-          quantity: item.quantity,
-          selectedSize: item.selectedSize || null,
-          selectedColor: item.selectedColor || null,
-          customization: item.customization || null,
-        })),
-        updatedAt: new Date().toISOString(),
-      });
+      const cartData = JSON.parse(
+        JSON.stringify({
+          userId: userId,
+          items: items.map((item) => ({
+            productId: item.product.id,
+            product: item.product,
+            quantity: item.quantity,
+            selectedSize: item.selectedSize || null,
+            selectedColor: item.selectedColor || null,
+            customization: item.customization || null,
+          })),
+          updatedAt: new Date().toISOString(),
+        })
+      );
+      await setDoc(cartRef, cartData);
       return true;
     } catch (error) {
       console.error("Failed to save cart:", error);
@@ -31,7 +34,7 @@ export const cartService = {
     try {
       const cartRef = doc(db, "carts", userId);
       const cartDoc = await getDoc(cartRef);
-      
+
       if (cartDoc.exists()) {
         const data = cartDoc.data();
         if (data.items && data.items.length > 0) {
@@ -67,5 +70,5 @@ export const cartService = {
   syncCart: async (userId: string, items: CartItem[]) => {
     await cartService.saveCart(userId, items);
     return await cartService.loadCart(userId);
-  }
+  },
 };

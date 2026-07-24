@@ -631,7 +631,7 @@
 
 
 
-import { doc, setDoc, getDoc, deleteDoc, collection, addDoc, query, where, getDocs, orderBy, Timestamp } from "firebase/firestore";
+import { doc, setDoc, getDoc, deleteDoc, collection, addDoc, query, where, getDocs, orderBy } from "firebase/firestore";
 import { db } from "../firebase";
 import { CartItem, User } from "../types";
 
@@ -663,12 +663,16 @@ export interface Order {
   specialNotes?: string;
 }
 
-// Helper function to convert null to undefined
+// Helper to remove all undefined fields recursively so Firestore doesn't reject document
+const cleanForFirestore = <T>(obj: T): T => {
+  if (obj === null || obj === undefined) return obj;
+  return JSON.parse(JSON.stringify(obj));
+};
+
 const nullToUndefined = <T>(value: T | null | undefined): T | undefined => {
   return value === null ? undefined : value;
 };
 
-// Helper to safely get embroidery text
 const getEmbroideryText = (customization: any): string | undefined => {
   if (!customization) return undefined;
   return nullToUndefined(customization.embroideredText || customization.babyName);
@@ -678,7 +682,7 @@ export const orderService = {
   // Create a new order from cart
   createOrder: async (user: User, cart: CartItem[], whatsappMessage: string, saveLocalStorage = true): Promise<Order | null> => {
     try {
-      console.log("🚀 Starting createOrder with:", { user, cartLength: cart.length, whatsappMessage });
+      console.log("🚀 Starting createOrder with:", { user: user?.id, cartLength: cart?.length });
 
       if (!user || !user.id) {
         console.error("❌ Invalid user data");
@@ -690,11 +694,10 @@ export const orderService = {
         return null;
       }
 
-      const subtotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+      const subtotal = cart.reduce((sum, item) => sum + (item.product?.price || 0) * item.quantity, 0);
       const now = new Date();
       const formattedDate = now.toLocaleDateString("en-US", { month: "long", year: "numeric", day: "numeric" });
 
-      // Extract embroidery details from first cart item with proper null handling
       const firstItem = cart[0];
       const customization = firstItem?.customization;
 
@@ -706,9 +709,6 @@ export const orderService = {
       const giftMessage = nullToUndefined(customization?.giftMessage);
       const specialNotes = nullToUndefined(customization?.specialNotes);
 
-      console.log("📝 Extracted customization:", { embroideryText, babyName, fontStyle, embroideryColor });
-
-      // Prepare items with proper null handling - convert null to undefined
       const items: CartItem[] = cart.map(item => ({
         product: item.product,
         quantity: item.quantity,
@@ -721,8 +721,7 @@ export const orderService = {
         embroideredText: getEmbroideryText(item.customization),
       }));
 
-      // Create order object with proper types (all optional fields as undefined, not null)
-      const orderData = {
+      const rawOrderData = {
         userId: user.id,
         userEmail: user.email || '',
         userName: user.name || '',
@@ -739,7 +738,6 @@ export const orderService = {
         whatsappMessage: whatsappMessage || '',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        // All optional fields should be undefined, not null
         embroideryText: embroideryText,
         babyName: babyName,
         fontStyle: fontStyle,
@@ -749,42 +747,32 @@ export const orderService = {
         specialNotes: specialNotes,
       };
 
-      console.log("💾 Saving order data:", orderData);
+      const orderData = cleanForFirestore(rawOrderData);
+      let docId = `CB-${Math.floor(1000 + Math.random() * 9000)}`;
 
       // Save to Firestore
-      const docRef = await addDoc(collection(db, "orders"), orderData);
-      console.log("✅ Order created with ID:", docRef.id);
-
-      // Create complete order with proper type
-      const completeOrder: Order = {
-        id: docRef.id,
-        ...orderData,
-        orderId: docRef.id,
-        status: orderData.status,
-      };
-
-      // Save to user's subcollection
       try {
-        const userOrderRef = doc(db, "users", user.id, "orders", docRef.id);
-        await setDoc(userOrderRef, completeOrder);
-        console.log("✅ Order saved to user subcollection");
-      } catch (error) {
-        console.warn("⚠️ Failed to save to user subcollection:", error);
+        const docRef = await addDoc(collection(db, "orders"), orderData);
+        docId = docRef.id;
+        console.log("✅ Order created in Firestore with ID:", docId);
+
+        try {
+          const userOrderRef = doc(db, "users", user.id, "orders", docId);
+          await setDoc(userOrderRef, cleanForFirestore({ ...orderData, id: docId, orderId: docId }));
+          console.log("✅ Order saved to user subcollection");
+        } catch (subErr) {
+          console.warn("⚠️ Failed to save to user subcollection:", subErr);
+        }
+      } catch (fsErr) {
+        console.warn("⚠️ Firestore addDoc failed, using local order fallback:", fsErr);
       }
 
-      // Save to localStorage
-      if (saveLocalStorage) {
-        try {
-          const storedOrdersKey = `couplo_orders_${user.id}`;
-          const existingOrdersStr = localStorage.getItem(storedOrdersKey);
-          let orders = existingOrdersStr ? JSON.parse(existingOrdersStr) : [];
-          orders.unshift(completeOrder);
-          localStorage.setItem(storedOrdersKey, JSON.stringify(orders));
-          console.log("✅ Order saved to localStorage");
-        } catch (error) {
-          console.warn("⚠️ Failed to save to localStorage:", error);
-        }
-      }
+      const completeOrder: Order = {
+        id: docId,
+        orderId: docId,
+        ...rawOrderData,
+        status: rawOrderData.status,
+      };
 
       return completeOrder;
     } catch (error) {
@@ -800,25 +788,17 @@ export const orderService = {
         user: user?.id, 
         productName: product?.name, 
         quantity, 
-        customization,
-        whatsappMessage 
       });
 
-      if (!user || !user.id) {
-        console.error("❌ Invalid user data");
+      if (!user || !user.id || !product) {
+        console.error("❌ Invalid user or product data");
         return null;
       }
 
-      if (!product) {
-        console.error("❌ Product is required");
-        return null;
-      }
-
-      const total = product.price * quantity;
+      const total = (product.price || 0) * quantity;
       const now = new Date();
       const formattedDate = now.toLocaleDateString("en-US", { month: "long", year: "numeric", day: "numeric" });
 
-      // Extract embroidery details with proper null handling
       const embroideryText = getEmbroideryText(customization);
       const babyName = nullToUndefined(customization?.babyName);
       const fontStyle = nullToUndefined(customization?.fontStyle);
@@ -827,9 +807,6 @@ export const orderService = {
       const giftMessage = nullToUndefined(customization?.giftMessage);
       const specialNotes = nullToUndefined(customization?.specialNotes);
 
-      console.log("📝 Extracted customization:", { embroideryText, babyName, fontStyle, embroideryColor });
-
-      // Create cart item with proper null handling
       const cartItem: CartItem = {
         product: product,
         quantity: quantity,
@@ -848,8 +825,7 @@ export const orderService = {
         embroideredText: embroideryText,
       };
 
-      // Create order object with proper types (all optional fields as undefined, not null)
-      const orderData = {
+      const rawOrderData = {
         userId: user.id,
         userEmail: user.email || '',
         userName: user.name || '',
@@ -866,7 +842,6 @@ export const orderService = {
         whatsappMessage: whatsappMessage || '',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        // All optional fields should be undefined, not null
         embroideryText: embroideryText,
         babyName: babyName,
         fontStyle: fontStyle,
@@ -876,42 +851,32 @@ export const orderService = {
         specialNotes: specialNotes,
       };
 
-      console.log("💾 Saving order data:", orderData);
+      const orderData = cleanForFirestore(rawOrderData);
+      let docId = `CB-${Math.floor(1000 + Math.random() * 9000)}`;
 
       // Save to Firestore
-      const docRef = await addDoc(collection(db, "orders"), orderData);
-      console.log("✅ Single order created with ID:", docRef.id);
-
-      // Create complete order with proper type
-      const completeOrder: Order = {
-        id: docRef.id,
-        ...orderData,
-        orderId: docRef.id,
-        status: orderData.status,
-      };
-
-      // Save to user's subcollection
       try {
-        const userOrderRef = doc(db, "users", user.id, "orders", docRef.id);
-        await setDoc(userOrderRef, completeOrder);
-        console.log("✅ Order saved to user subcollection");
-      } catch (error) {
-        console.warn("⚠️ Failed to save to user subcollection:", error);
+        const docRef = await addDoc(collection(db, "orders"), orderData);
+        docId = docRef.id;
+        console.log("✅ Single order created in Firestore with ID:", docId);
+
+        try {
+          const userOrderRef = doc(db, "users", user.id, "orders", docId);
+          await setDoc(userOrderRef, cleanForFirestore({ ...orderData, id: docId, orderId: docId }));
+          console.log("✅ Single order saved to user subcollection");
+        } catch (subErr) {
+          console.warn("⚠️ Failed to save to user subcollection:", subErr);
+        }
+      } catch (fsErr) {
+        console.warn("⚠️ Firestore addDoc failed for single order:", fsErr);
       }
 
-      // Save to localStorage
-      if (saveLocalStorage) {
-        try {
-          const storedOrdersKey = `couplo_orders_${user.id}`;
-          const existingOrdersStr = localStorage.getItem(storedOrdersKey);
-          let orders = existingOrdersStr ? JSON.parse(existingOrdersStr) : [];
-          orders.unshift(completeOrder);
-          localStorage.setItem(storedOrdersKey, JSON.stringify(orders));
-          console.log("✅ Order saved to localStorage");
-        } catch (error) {
-          console.warn("⚠️ Failed to save to localStorage:", error);
-        }
-      }
+      const completeOrder: Order = {
+        id: docId,
+        orderId: docId,
+        ...rawOrderData,
+        status: rawOrderData.status,
+      };
 
       return completeOrder;
     } catch (error) {
@@ -920,7 +885,7 @@ export const orderService = {
     }
   },
 
-  // Get orders for a user
+  // Get orders for a user (Exclusively from Firestore)
   getUserOrders: async (userId: string): Promise<Order[]> => {
     try {
       if (!userId) {
@@ -928,7 +893,9 @@ export const orderService = {
         return [];
       }
 
-      // First try to get from Firestore
+      let firestoreOrders: Order[] = [];
+
+      // 1. Query Firestore root orders collection
       try {
         const ordersRef = collection(db, "orders");
         const q = query(
@@ -937,47 +904,65 @@ export const orderService = {
           orderBy("createdAt", "desc")
         );
         const querySnapshot = await getDocs(q);
-        
-        if (!querySnapshot.empty) {
-          const orders = querySnapshot.docs.map((doc) => {
+        firestoreOrders = querySnapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            orderId: doc.id,
+            ...data,
+            status: data.status as Order['status'],
+          } as Order;
+        });
+      } catch (err1) {
+        console.warn("⚠️ Firestore orderBy query failed, trying without orderBy:", err1);
+        try {
+          const ordersRef = collection(db, "orders");
+          const q = query(ordersRef, where("userId", "==", userId));
+          const querySnapshot = await getDocs(q);
+          firestoreOrders = querySnapshot.docs.map((doc) => {
             const data = doc.data();
             return {
               id: doc.id,
-              ...data,
               orderId: doc.id,
-              status: data.status as 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled',
-              // Convert null to undefined for optional fields
-              embroideryText: nullToUndefined(data.embroideryText),
-              babyName: nullToUndefined(data.babyName),
-              fontStyle: nullToUndefined(data.fontStyle),
-              embroideryColor: nullToUndefined(data.embroideryColor),
-              giftMessage: nullToUndefined(data.giftMessage),
-              specialNotes: nullToUndefined(data.specialNotes),
+              ...data,
+              status: data.status as Order['status'],
             } as Order;
           });
-          console.log(`📦 Found ${orders.length} orders in Firestore for user ${userId}`);
-          return orders;
+        } catch (err2) {
+          console.warn("⚠️ Firestore plain query failed:", err2);
         }
-      } catch (error) {
-        console.warn("⚠️ Failed to get orders from Firestore:", error);
       }
 
-      // Fallback to localStorage
-      try {
-        const storedOrdersKey = `couplo_orders_${userId}`;
-        const ordersStr = localStorage.getItem(storedOrdersKey);
-        if (ordersStr) {
-          const orders = JSON.parse(ordersStr);
-          console.log(`📦 Found ${orders.length} orders in localStorage for user ${userId}`);
-          return orders;
+      // 2. Query user subcollection if root orders is empty
+      if (firestoreOrders.length === 0) {
+        try {
+          const userOrdersRef = collection(db, "users", userId, "orders");
+          const querySnapshot = await getDocs(userOrdersRef);
+          firestoreOrders = querySnapshot.docs.map((doc) => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              orderId: doc.id,
+              ...data,
+              status: data.status as Order['status'],
+            } as Order;
+          });
+        } catch (subErr) {
+          console.warn("⚠️ User subcollection query failed:", subErr);
         }
-      } catch (error) {
-        console.warn("⚠️ Failed to get orders from localStorage:", error);
       }
 
-      return [];
+      // Sort Firestore orders by date descending
+      firestoreOrders.sort((a, b) => {
+        const dateA = new Date(a.createdAt || a.date || 0).getTime();
+        const dateB = new Date(b.createdAt || b.date || 0).getTime();
+        return dateB - dateA;
+      });
+
+      console.log(`📦 Found ${firestoreOrders.length} Firestore orders for user ${userId}`);
+      return firestoreOrders;
     } catch (error) {
-      console.error("❌ Failed to get user orders:", error);
+      console.error("❌ Failed to get user orders from Firestore:", error);
       return [];
     }
   },
@@ -1019,14 +1004,7 @@ export const orderService = {
           id: orderDoc.id, 
           ...data,
           orderId: orderDoc.id,
-          status: data.status as 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled',
-          // Convert null to undefined for optional fields
-          embroideryText: nullToUndefined(data.embroideryText),
-          babyName: nullToUndefined(data.babyName),
-          fontStyle: nullToUndefined(data.fontStyle),
-          embroideryColor: nullToUndefined(data.embroideryColor),
-          giftMessage: nullToUndefined(data.giftMessage),
-          specialNotes: nullToUndefined(data.specialNotes),
+          status: data.status as Order['status'],
         } as Order;
       }
       return null;
@@ -1053,4 +1031,4 @@ export const orderService = {
       return false;
     }
   }
-};
+};

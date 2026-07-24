@@ -691,62 +691,11 @@ export default function App() {
     cart.forEach((item, index) => {
       const sizeStr = item.selectedSize ? `\n   • Size: ${item.selectedSize}` : "";
       const colorStr = item.selectedColor ? `\n   • Color: ${item.selectedColor}` : "";
-      message += `${index + 1}. *${item.product.name}* x ${item.quantity}${sizeStr}${colorStr}\n   • Price: $${(item.product.price * item.quantity).toFixed(2)}\n\n`;
+      message += `${index + 1}. *${item.product.name}* x ${item.quantity}${sizeStr}${colorStr}\n   • Price: ₹${(item.product.price * item.quantity).toFixed(2)}\n\n`;
     });
-    message += `Total Amount: $${subtotal.toFixed(2)}\n`;
+    message += `Total Amount: ₹${subtotal.toFixed(2)}\n`;
     message += `Customer: ${currentUser.name} (${currentUser.email})\n\n`;
     message += `Please let me know availability and payment details. Thank you! ✨`;
-
-    const orderId = `CB-${Math.floor(1000 + Math.random() * 9000)}`;
-    const newOrder = {
-      id: orderId,
-      date: todayStr,
-      productName: cart.map((item) => `${item.product.name} (x${item.quantity})`).join(", "),
-      qty: cart.reduce((sum, item) => sum + item.quantity, 0),
-      total: `$${subtotal.toFixed(2)}`,
-      status: "Pending",
-      statusColor: "bg-blue-100 text-blue-800 border-blue-200",
-      notes: "Awaiting WhatsApp confirmation from Couplo concierge.",
-    };
-
-    const storedOrdersKey = `couplo_orders_${currentUser.id}`;
-    const existingOrdersStr = localStorage.getItem(storedOrdersKey);
-    let orders = [];
-    if (existingOrdersStr) {
-      try {
-        orders = JSON.parse(existingOrdersStr);
-      } catch (e) {
-        console.error("Failed to parse orders history", e);
-      }
-    } else {
-      if (currentUser.email === "parent@couplo.com") {
-        const defaultMock = [
-          {
-            id: "CB-8492",
-            date: "June 25, 2026",
-            productName: "Premium Newborn Gift Set (Custom Embroidery)",
-            qty: 1,
-            total: "$68.00",
-            status: "Shipped",
-            statusColor: "bg-amber-100 text-amber-800 border-amber-200",
-            notes: "WhatsApp coordination completed. Parcel in transit.",
-          },
-          {
-            id: "CB-8123",
-            date: "May 12, 2026",
-            productName: "Organic Cotton Ribbed Romper & Hat Set",
-            qty: 2,
-            total: "$85.00",
-            status: "Delivered",
-            statusColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-            notes: "Delivered. WhatsApp confirmation received.",
-          },
-        ];
-        orders = [...defaultMock];
-      }
-    }
-    orders.unshift(newOrder);
-    localStorage.setItem(storedOrdersKey, JSON.stringify(orders));
 
     const savedOrder = await orderService.createOrder(currentUser, cart, message, false);
     if (!savedOrder) {
@@ -838,35 +787,10 @@ console.log("⏳ Loading state:", productsLoading);
 
       let message = `Hi Couplo Baby Sets! I would love to place an order for the following item:\n\n`;
       message += `1. *${product.name}* x ${quantity}${sizeStr}${colorStr}${babyNameStr}${babyAgeStr}\n`;
-      message += `   - Price: $${total.toFixed(2)}\n\n`;
-      message += `Total Amount: $${total.toFixed(2)}\n`;
+      message += `   - Price: ₹${total.toFixed(2)}\n\n`;
+      message += `Total Amount: ₹${total.toFixed(2)}\n`;
       message += `Customer: ${currentUser.name} (${currentUser.email})\n\n`;
       message += `Please let me know availability and payment details. Thank you!`;
-
-      const orderId = `CB-${Math.floor(1000 + Math.random() * 9000)}`;
-      const newOrder = {
-        id: orderId,
-        date: todayStr,
-        productName: `${product.name} (x${quantity})`,
-        qty: quantity,
-        total: `$${total.toFixed(2)}`,
-        status: "Pending",
-        statusColor: "bg-blue-100 text-blue-800 border-blue-200",
-        notes: "Awaiting WhatsApp confirmation from Couplo concierge.",
-      };
-
-      const storedOrdersKey = `couplo_orders_${currentUser.id}`;
-      const existingOrdersStr = localStorage.getItem(storedOrdersKey);
-      let orders = [];
-      if (existingOrdersStr) {
-        try {
-          orders = JSON.parse(existingOrdersStr);
-        } catch (e) {
-          console.error("Failed to parse orders history", e);
-        }
-      }
-      orders.unshift(newOrder);
-      localStorage.setItem(storedOrdersKey, JSON.stringify(orders));
 
       const savedOrder = await orderService.createSingleOrder(currentUser, product, quantity, {
         ...customization,
@@ -916,6 +840,7 @@ console.log("⏳ Loading state:", productsLoading);
           quickView.closeQuickView();
           handleAddToCartWithCustomization(product, quantity);
         }}
+        currentUser={currentUser}
       />
 
       <CustomizationModal
