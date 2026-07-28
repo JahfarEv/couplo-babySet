@@ -11,20 +11,20 @@ export default function ProductCard({ product, onQuickView, onAddToCart }: Produ
   return (
     <div
       onClick={() => onQuickView(product)}
-      className="bg-surface-container-lowest rounded-3xl p-4 shadow-[0_30px_50px_rgba(113,88,91,0.03)] hover:shadow-[0_45px_60px_rgba(113,88,91,0.08)] hover:-translate-y-1.5 transition-all duration-300 group cursor-pointer flex flex-col"
+      className="bg-white rounded-[1.75rem] p-4 shadow-[0_20px_45px_rgba(216,111,146,0.1)] hover:shadow-[0_32px_60px_rgba(216,111,146,0.18)] hover:-translate-y-1.5 transition-all duration-300 group cursor-pointer flex flex-col border border-primary/8"
     >
-      <div className="relative aspect-square rounded-2xl overflow-hidden mb-4 bg-surface-container-low select-none">
+      <div className="relative aspect-square rounded-[1.35rem] overflow-hidden mb-4 bg-gradient-to-br from-primary-container via-white to-secondary-container select-none">
         <img
           alt={product.name}
           className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
           src={product.image}
         />
         {product.isNew && (
-          <div className="absolute top-3 left-3 bg-primary text-on-primary text-[9px] px-2.5 py-1 rounded-md z-10 font-bold uppercase tracking-wider">
+          <div className="absolute top-3 left-3 bg-primary text-on-primary text-[9px] px-2.5 py-1 rounded-full z-10 font-bold uppercase tracking-wider shadow-sm">
             New
           </div>
         )}
-        <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+        <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
           <span className="bg-surface text-primary text-xs font-semibold px-4 py-2 rounded-full shadow-lg border border-primary/5">
             Quick View
           </span>
@@ -61,7 +61,7 @@ export default function ProductCard({ product, onQuickView, onAddToCart }: Produ
                 e.stopPropagation();
                 onAddToCart(product);
               }}
-              className="flex-1 bg-primary hover:bg-primary/95 text-white py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer border-none"
+            className="flex-1 bg-primary hover:bg-primary/95 text-white py-2.5 px-3 rounded-full text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer border-none shadow-sm"
             >
               <ShoppingBag className="w-3.5 h-3.5" />
               Add to Bag
@@ -71,7 +71,7 @@ export default function ProductCard({ product, onQuickView, onAddToCart }: Produ
                 e.stopPropagation();
                 onQuickView(product);
               }}
-              className="flex-1 bg-secondary hover:bg-secondary/95 text-white py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer border-none"
+            className="flex-1 bg-secondary hover:bg-secondary/95 text-white py-2.5 px-3 rounded-full text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer border-none shadow-sm"
             >
               <Eye className="w-3.5 h-3.5" />
               Explore

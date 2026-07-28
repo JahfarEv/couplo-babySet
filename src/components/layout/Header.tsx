@@ -39,7 +39,7 @@ export default function Header({
   return (
     <header
       id="app-header"
-      className="bg-surface/60 backdrop-blur-md sticky top-0 w-full z-40 transition-all duration-300 shadow-[0_30px_50px_rgba(113,88,91,0.03)] border-b border-primary/5"
+      className="bg-white/78 backdrop-blur-md sticky top-0 w-full z-40 transition-all duration-300 shadow-[0_18px_45px_rgba(216,111,146,0.08)] border-b border-primary/10"
     >
       <div className="flex justify-between items-center w-full px-4 md:px-16 py-4 max-w-7xl mx-auto">
         <div className="flex items-center gap-3 md:hidden">
@@ -96,7 +96,7 @@ export default function Header({
               {[1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className="h-5 w-16 bg-gray-200 rounded animate-pulse"
+                className="h-5 w-16 bg-primary-container rounded-full animate-pulse"
                 />
               ))}
             </>
@@ -130,7 +130,7 @@ export default function Header({
           >
             <ShoppingBag className="w-5.5 h-5.5 md:w-5 md:h-5 text-primary" />
             {totalItems > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 bg-primary text-on-primary text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center animate-pulse">
+              <span className="absolute -top-1.5 -right-1.5 bg-tertiary text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center animate-pulse">
                 {totalItems}
               </span>
             )}

@@ -468,8 +468,8 @@
 
 
 
-import { forwardRef, useMemo } from "react";
-import { Grid, ArrowRight } from "lucide-react";
+import { forwardRef, useMemo, useState } from "react";
+import { Grid, ArrowRight, Heart } from "lucide-react";
 import { useCategories } from "../../hooks/useCategories";
 import { CategoryFilter } from "../../types";
 import { CuratedCollectionsSkeleton } from "./CuratedCollectionsSkeleton";
@@ -481,16 +481,19 @@ interface CuratedCollectionsProps {
 const CuratedCollections = forwardRef<HTMLDivElement, CuratedCollectionsProps>(
   ({ onCategoryClick }, ref) => {
     const { categories, loading, error } = useCategories();
+    const [showAllCategories, setShowAllCategories] = useState(false);
 
-    // Get first 3 categories for display
+    // Show the featured categories first, then expand to the full Firebase list.
     const displayCategories = useMemo(() => {
-      return categories.slice(0, 3).map((category, index) => ({
+      const visibleCategories = showAllCategories ? categories : categories.slice(0, 3);
+
+      return visibleCategories.map((category, index) => ({
         ...category,
         image: category.image || "", // Use image from Firebase or empty
-        isLarge: index === 0,
-        extraCopy: index === 0 ? "Explore garments" : undefined,
+        isLarge: !showAllCategories && index === 0,
+        extraCopy: !showAllCategories && index === 0 ? "Explore garments" : undefined,
       }));
-    }, [categories]);
+    }, [categories, showAllCategories]);
 
     // Show skeleton while loading
     if (loading) {
@@ -525,15 +528,16 @@ const CuratedCollections = forwardRef<HTMLDivElement, CuratedCollectionsProps>(
       >
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <span className="text-[11px] uppercase tracking-widest font-bold text-primary">
-              SHOP BY THEME
+            <span className="inline-flex items-center gap-2 text-[11px] uppercase tracking-widest font-bold text-primary bg-white px-4 py-2 rounded-full border border-primary/10 shadow-sm">
+              <Heart className="h-3.5 w-3.5 fill-primary" />
+              Tiny Wardrobe
             </span>
             <h2 className="text-3xl md:text-4xl font-serif font-bold text-on-surface mt-2 mb-4">
-              Curated Collections
+              Cute Collections for Every Baby Moment
             </h2>
             <p className="text-sm md:text-md text-on-surface-variant max-w-md mx-auto">
-              Find exactly what you need for every milestone. Organic,
-              non-toxic, and hand-selected items.
+              Soft fabrics, playful colors, and parent-loved picks for cuddles,
+              photos, birthdays, and everyday tiny adventures.
             </p>
           </div>
 
@@ -547,7 +551,7 @@ const CuratedCollections = forwardRef<HTMLDivElement, CuratedCollectionsProps>(
                 <div
                   key={category.id}
                   onClick={() => onCategoryClick(category.value)}
-                  className={`group relative rounded-3xl overflow-hidden shadow-md cursor-pointer block select-none transition-all hover:shadow-lg ${
+                  className={`group relative rounded-[1.75rem] overflow-hidden shadow-[0_18px_45px_rgba(216,111,146,0.12)] cursor-pointer block select-none transition-all hover:shadow-[0_28px_60px_rgba(216,111,146,0.2)] hover:-translate-y-1 ${
                     category.isLarge ? "col-span-2 row-span-2 h-full" : ""
                   }`}
                 >
@@ -573,13 +577,13 @@ const CuratedCollections = forwardRef<HTMLDivElement, CuratedCollectionsProps>(
                       🧸
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-inverse-surface/60 via-inverse-surface/20 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-inverse-surface/62 via-primary/10 to-transparent" />
                   <div className="absolute bottom-6 left-6 right-6">
                     <h3 className="text-2xl md:text-3xl font-serif text-white font-black text-on-primary">
                       {category.label}
                     </h3>
                     {category.extraCopy && (
-                      <span className="text-xs text-primary-fixed-dim font-bold flex items-center group-hover:text-on-primary transition-colors mt-2">
+                      <span className="text-xs text-primary-fixed-dim font-bold flex items-center group-hover:text-white transition-colors mt-2">
                         {category.extraCopy}
                         <ArrowRight className="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" />
                       </span>
@@ -597,7 +601,7 @@ const CuratedCollections = forwardRef<HTMLDivElement, CuratedCollectionsProps>(
                   "_blank",
                 )
               }
-              className="group relative rounded-3xl overflow-hidden shadow-md cursor-pointer block select-none"
+              className="group relative rounded-[1.75rem] overflow-hidden shadow-[0_18px_45px_rgba(216,111,146,0.12)] cursor-pointer block select-none transition-all hover:-translate-y-1"
             >
               <img
                 alt="Join our WhatsApp Channel"
@@ -607,7 +611,7 @@ const CuratedCollections = forwardRef<HTMLDivElement, CuratedCollectionsProps>(
                   (e.target as HTMLImageElement).style.display = 'none';
                 }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-inverse-surface/60 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-inverse-surface/62 via-primary/10 to-transparent" />
               <div className="absolute bottom-4 left-4 right-4">
                 <h3 className="text-md sm:text-lg font-serif font-bold text-white">
                   More Collections
@@ -620,16 +624,18 @@ const CuratedCollections = forwardRef<HTMLDivElement, CuratedCollectionsProps>(
 
             {/* View All Categories Card */}
             <div
-              onClick={() => onCategoryClick("all")}
-              className="group relative rounded-3xl overflow-hidden shadow-xs cursor-pointer block select-none border border-primary/10 hover:border-primary/30 transition-all"
+              onClick={() => setShowAllCategories((current) => !current)}
+              className="group relative rounded-[1.75rem] overflow-hidden shadow-xs cursor-pointer block select-none border border-primary/15 hover:border-primary/30 transition-all hover:-translate-y-1"
             >
-              <div className="absolute inset-0 bg-secondary-container/20 flex flex-col items-center justify-center text-center p-4 transition-all group-hover:bg-secondary-container/40">
+              <div className="absolute inset-0 bg-gradient-to-br from-secondary-container via-white to-tertiary-container flex flex-col items-center justify-center text-center p-4 transition-all group-hover:from-primary-container">
                 <Grid className="w-8 h-8 text-secondary mb-2" />
                 <h3 className="text-xs sm:text-sm font-semibold font-serif text-on-surface">
-                  View All Categories
+                  {showAllCategories ? "Show Fewer Categories" : "View All Categories"}
                 </h3>
                 <p className="text-[10px] text-on-surface-variant mt-1">
-                  {categories.length} categories
+                  {showAllCategories
+                    ? "Back to featured"
+                    : `${categories.length} categories`}
                 </p>
               </div>
             </div>

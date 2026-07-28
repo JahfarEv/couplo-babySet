@@ -1,36 +1,36 @@
-import { CheckCircle, Truck, ShieldCheck, Headphones } from "lucide-react";
+import { HeartHandshake, Truck, ShieldCheck, MessageCircleHeart } from "lucide-react";
 
 const FEATURES = [
   {
-    icon: CheckCircle,
-    title: "Premium Quality",
-    description: "Carefully selected organic textiles & safe materials.",
+    icon: HeartHandshake,
+    title: "Baby-Soft Feel",
+    description: "Gentle textiles chosen for delicate little skin.",
   },
   {
     icon: Truck,
     title: "Fast Delivery",
-    description: "Quick dispatch and safety-insured parcel routing.",
+    description: "Quick dispatch with careful, gift-ready packing.",
   },
   {
     icon: ShieldCheck,
-    title: "100% Safe",
-    description: "Non-toxic colors, certified GOTS and baby-ready.",
+    title: "Baby Safe",
+    description: "Non-toxic colors and comfort-first materials.",
   },
   {
-    icon: Headphones,
-    title: "Easy Support",
-    description: "Order directly via our continuous 24/7 WhatsApp line.",
+    icon: MessageCircleHeart,
+    title: "Sweet Support",
+    description: "Order and personalise easily through WhatsApp.",
   },
 ];
 
 export default function WhyChooseUs() {
   return (
-    <section id="why-choose-us" className="py-20 px-4 md:px-16 bg-surface-container-high">
+    <section id="why-choose-us" className="py-20 px-4 md:px-16 bg-gradient-to-r from-primary-container via-surface-container-lowest to-secondary-container">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 text-center">
           {FEATURES.map(({ icon: Icon, title, description }) => (
             <div key={title} className="flex flex-col items-center">
-              <div className="w-16 h-16 bg-surface-container-lowest rounded-full flex items-center justify-center mb-4 text-primary shadow-[0_10px_20px_rgba(113,88,91,0.05)] hover:scale-105 transition-transform">
+              <div className="w-16 h-16 bg-white rounded-[1.4rem] flex items-center justify-center mb-4 text-primary shadow-[0_14px_30px_rgba(216,111,146,0.14)] hover:scale-105 transition-transform rotate-3">
                 <Icon className="w-8 h-8 text-primary" />
               </div>
               <h4 className="text-sm font-bold text-primary font-serif uppercase tracking-wider mb-1">

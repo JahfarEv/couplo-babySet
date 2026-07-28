@@ -486,6 +486,7 @@ import FeaturedProducts from "./components/home/FeaturedProducts";
 import WhyChooseUs from "./components/home/WhyChooseUs";
 import OurStory from "./components/home/OurStory";
 import CustomerReviews from "./components/home/CustomerReviews";
+import ReturnClaims from "./components/home/ReturnClaims";
 import SearchOverlay from "./components/overlays/SearchOverlay";
 import QuickViewModal from "./components/overlays/QuickViewModal";
 import ToastContainer from "./components/overlays/ToastContainer";
@@ -923,6 +924,7 @@ console.log("⏳ Loading state:", productsLoading);
             <WhyChooseUs />
             <CustomerReviews />
             <OurStory />
+            <ReturnClaims />
           </>
         )}
       </main>
@@ -932,7 +934,8 @@ console.log("⏳ Loading state:", productsLoading);
           setActiveView("home");
           handleCategoryBlockClick(cat);
         }}
-        onShowToast={showToast}
+        categories={categories}
+        categoriesLoading={categoriesLoading}
       />
 
       <ScrollToTopButton visible={showScrollTop} />

@@ -5,42 +5,52 @@
   --font-serif: "Playfair Display", Georgia, serif;
   --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
 
-  --color-primary: #71585b;
-  --color-primary-container: #f8d7da;
-  --color-on-primary-container: #755c5f;
-  --color-primary-fixed: #fcdbde;
-  --color-primary-fixed-dim: #debfc2;
+  --color-primary: #d86f92;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #ffe3ec;
+  --color-on-primary-container: #8f3f5f;
+  --color-primary-fixed: #ffe8f0;
+  --color-primary-fixed-dim: #ffc2d6;
   
-  --color-secondary: #4b626c;
-  --color-secondary-container: #cee6f3;
-  --color-on-secondary-container: #516873;
+  --color-secondary: #5ca9b3;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #d8f6f7;
+  --color-on-secondary-container: #2f7078;
   
-  --color-tertiary: #5e5e5c;
-  --color-tertiary-container: #e0dfdb;
-  --color-on-tertiary-container: #62625f;
+  --color-tertiary: #e2a84d;
+  --color-tertiary-container: #fff1c7;
+  --color-on-tertiary-container: #806029;
   
-  --color-background: #fbf9f8;
-  --color-on-background: #1b1c1c;
+  --color-background: #fff9fb;
+  --color-on-background: #31272b;
   
-  --color-surface: #fbf9f8;
-  --color-surface-dim: #dbd9d9;
-  --color-surface-bright: #fbf9f8;
+  --color-surface: #fff9fb;
+  --color-surface-dim: #f1e3e8;
+  --color-surface-bright: #fffdf7;
   --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low: #f5f3f3;
-  --color-surface-container: #efeded;
-  --color-surface-container-high: #eae8e7;
-  --color-surface-container-highest: #e4e2e2;
+  --color-surface-container-low: #fff1f6;
+  --color-surface-container: #ffedf4;
+  --color-surface-container-high: #ffe3ec;
+  --color-surface-container-highest: #ffd6e5;
   
-  --color-on-surface: #1b1c1c;
-  --color-on-surface-variant: #4f4445;
-  --color-inverse-surface: #303030;
-  --color-inverse-on-surface: #f2f0f0;
-  --color-outline: #817475;
-  --color-outline-variant: #d2c3c4;
+  --color-on-surface: #31272b;
+  --color-on-surface-variant: #6d5a62;
+  --color-inverse-surface: #3b2b31;
+  --color-inverse-on-surface: #fff7fa;
+  --color-outline: #a9818f;
+  --color-outline-variant: #efd0db;
 }
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply font-sans bg-background text-on-surface antialiased;
+    background:
+      radial-gradient(circle at 12px 12px, rgba(216, 111, 146, 0.08) 0 2px, transparent 2.5px),
+      linear-gradient(135deg, #fff9fb 0%, #fffdf7 46%, #eefbfb 100%);
+    background-size: 34px 34px, auto;
   }
 }
