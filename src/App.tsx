@@ -477,6 +477,7 @@ import { useScrollVisibility } from "./hooks/useScrollVisibility";
 import { useQuickView } from "./hooks/useQuickView";
 import { useCustomizationFlow } from "./hooks/useCustomizationFlow";
 import { CustomizationDetails } from "./types/customization";
+import PremiumCustomization from "./components/home/PremiumCustomization";
 
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
@@ -843,7 +844,7 @@ console.log("⏳ Loading state:", productsLoading);
         }}
         currentUser={currentUser}
       />
-
+      
       <CustomizationModal
         open={customizationFlow.state.open}
         product={customizationFlow.state.product}
@@ -922,6 +923,7 @@ console.log("⏳ Loading state:", productsLoading);
             />
 
             <WhyChooseUs />
+            <PremiumCustomization />
             <CustomerReviews />
             <OurStory />
             <ReturnClaims />
