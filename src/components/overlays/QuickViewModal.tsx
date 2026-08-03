@@ -604,6 +604,37 @@ interface QuickViewModalProps {
   onViewFullDetails?: (product: Product) => void;
 }
 
+function getProductIncludes(product: Product, description: string) {
+  const explicitIncludes = [
+    ...(product.includes ?? []),
+    ...(product.tags ?? []),
+  ]
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  if (explicitIncludes.length > 0) {
+    return Array.from(new Set(explicitIncludes)).slice(0, 6);
+  }
+
+  const includeMatch = description.match(
+    /\b(?:includes?|comes with|features?|consisting of)\b\s+(.+?)(?:\.|$)/i
+  );
+
+  if (!includeMatch) return [];
+
+  return includeMatch[1]
+    .replace(/^[:\-]\s*/, "")
+    .split(/,\s+|\s+and\s+/i)
+    .map((item) =>
+      item
+        .replace(/^(a|an|the)\s+/i, "")
+        .replace(/\s+/g, " ")
+        .trim()
+    )
+    .filter((item) => item.length > 2)
+    .slice(0, 6);
+}
+
 export default function QuickViewModal({
   product,
   quantity,
@@ -615,18 +646,15 @@ export default function QuickViewModal({
   onViewFullDetails,
 }: QuickViewModalProps) {
   const [reviews, setReviews] = useState<ProductReview[]>([]);
-  const [isFetchingReviews, setIsFetchingReviews] = useState(false);
   const [newReviewRating, setNewReviewRating] = useState(5);
   const [newReviewComment, setNewReviewComment] = useState("");
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
   useEffect(() => {
     if (product) {
-      setIsFetchingReviews(true);
       reviewService.getReviewsByProduct(product.id)
         .then(setReviews)
-        .catch(console.error)
-        .finally(() => setIsFetchingReviews(false));
+        .catch(console.error);
     } else {
       setReviews([]);
     }
@@ -663,6 +691,7 @@ export default function QuickViewModal({
   const dynamicRatingCount = reviews.length > 0 ? reviews.length : (product?.ratingCount || 0);
 
   const description = product?.description || "Thoughtfully made for everyday comfort, gifting, and gentle baby care.";
+  const productIncludes = product ? getProductIncludes(product, description) : [];
 
   return (
     <AnimatePresence>
@@ -767,9 +796,24 @@ export default function QuickViewModal({
                   text is.
                 */}
                 <div className="bg-surface-container-low rounded-xl border border-primary/10 p-3">
-                  <p className="text-sm text-on-surface-variant leading-5 whitespace-pre-wrap max-h-[140px] overflow-y-auto pr-1">
+                  <p className="text-sm text-on-surface-variant leading-5 whitespace-pre-wrap">
                     {description}
                   </p>
+                  {productIncludes.length > 0 && (
+                    <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-outline mr-1">
+                        Includes
+                      </span>
+                      {productIncludes.map((item) => (
+                        <span
+                          key={item}
+                          className="rounded-full border border-primary/15 bg-surface-container-lowest px-2.5 py-1 text-[11px] font-medium text-on-surface-variant"
+                        >
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                   {onViewFullDetails && (
                     <button
                       onClick={() => onViewFullDetails(product)}
@@ -819,41 +863,6 @@ export default function QuickViewModal({
                     </div>
                   </div>
 
-                  {/* Reviews List */}
-                  <div className="space-y-2 max-h-[120px] overflow-y-auto pr-1 custom-scrollbar">
-                    {isFetchingReviews ? (
-                      <p className="text-xs text-outline animate-pulse text-center py-2">Loading...</p>
-                    ) : reviews.length === 0 ? (
-                      <p className="text-xs text-outline text-center py-2 bg-surface-container-lowest rounded-lg border border-dashed border-outline-variant/30">
-                        No reviews yet. Be the first!
-                      </p>
-                    ) : (
-                      reviews.slice(0, 3).map((review) => (
-                        <div key={review.id} className="bg-surface-container-lowest p-2 rounded-lg border border-outline-variant/10">
-                          <div className="flex justify-between items-start">
-                            <span className="font-semibold text-xs text-on-surface">{review.userName}</span>
-                            <span className="text-[9px] text-outline">
-                              {new Date(review.createdAt).toLocaleDateString()}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-0.5 my-0.5">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <Star
-                                key={star}
-                                className={`w-2.5 h-2.5 ${star <= review.rating ? "fill-[#FFC107] text-[#FFC107]" : "text-outline-variant/30"}`}
-                              />
-                            ))}
-                          </div>
-                          <p className="text-xs text-on-surface-variant leading-relaxed line-clamp-1">
-                            {review.comment}
-                          </p>
-                        </div>
-                      ))
-                    )}
-                    {reviews.length > 3 && (
-                      <p className="text-xs text-center text-outline">+{reviews.length - 3} more reviews</p>
-                    )}
-                  </div>
                 </div>
               </div>
 
@@ -888,7 +897,7 @@ export default function QuickViewModal({
                     className="flex-1 bg-primary hover:bg-primary/95 text-white py-2.5 px-4 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-1.5 active:scale-[0.98] shadow-sm cursor-pointer border-none"
                   >
                     <ShoppingBag className="w-4 h-4" />
-                    Add to Bag
+                    Cart
                   </button>
 
                   <button

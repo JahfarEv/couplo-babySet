@@ -37,6 +37,8 @@ export function useUserProducts() {
             image: data.image || data.images?.[0] || "",
             images: data.images || [],
             description: data.description || "",
+            includes: data.includes || [],
+            tags: data.tags || [],
             isNew: Boolean(data.isNew),
             sizes: data.sizes || [],
             colors: data.colors || [],

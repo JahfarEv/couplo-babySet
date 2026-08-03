@@ -1,13 +1,20 @@
 // import { useMemo, useRef, useState, useEffect } from "react";
 // import { CategoryFilter, Product, User, CartItem } from "./types";
-// import { fetchProducts } from "./services/products";
+// import { useUserProducts } from "./hooks/useProducts"; // ✅ Import the hook
+// import { useCategories } from "./hooks/useCategories";
+// import { categoryMatches, getCategoryLabel } from "./utils/categoryUtils";
+// import { orderService } from "./services/orderService";
+// import { cartService } from "./services/cartService";
+// import { auth, db } from "./firebase";
+// import { onAuthStateChanged, signOut } from "firebase/auth";
+// import { doc, getDoc } from "firebase/firestore";
 
 // import { useToast } from "./hooks/useToast";
 // import { useScrollVisibility } from "./hooks/useScrollVisibility";
 // import { useQuickView } from "./hooks/useQuickView";
 // import { useCustomizationFlow } from "./hooks/useCustomizationFlow";
-// import { openWhatsAppOrder } from "./utils/whatsapp";
 // import { CustomizationDetails } from "./types/customization";
+// import PremiumCustomization from "./components/home/PremiumCustomization";
 
 // import Header from "./components/layout/Header";
 // import Footer from "./components/layout/Footer";
@@ -17,6 +24,7 @@
 // import WhyChooseUs from "./components/home/WhyChooseUs";
 // import OurStory from "./components/home/OurStory";
 // import CustomerReviews from "./components/home/CustomerReviews";
+// import ReturnClaims from "./components/home/ReturnClaims";
 // import SearchOverlay from "./components/overlays/SearchOverlay";
 // import QuickViewModal from "./components/overlays/QuickViewModal";
 // import ToastContainer from "./components/overlays/ToastContainer";
@@ -33,11 +41,14 @@
 
 //   const [currentUser, setCurrentUser] = useState<User | null>(null);
 //   const [activeView, setActiveView] = useState<"home" | "auth">("home");
+//   const [productToShowAfterLogin, setProductToShowAfterLogin] = useState<Product | null>(null);
 
 //   const [cart, setCart] = useState<CartItem[]>([]);
 //   const [cartOpen, setCartOpen] = useState(false);
-//   const [products, setProducts] = useState<Product[]>([]);
-//   const [productsLoading, setProductsLoading] = useState(true);
+
+//   // ✅ Use the same approach as admin - real-time updates
+//   const { products, loading: productsLoading } = useUserProducts();
+//   const { categories, loading: categoriesLoading } = useCategories();
 
 //   const { toasts, showToast, dismissToast } = useToast();
 //   const showScrollTop = useScrollVisibility(400);
@@ -47,45 +58,36 @@
 //   const featuredSectionRef = useRef<HTMLDivElement>(null);
 //   const collectionsSectionRef = useRef<HTMLDivElement>(null);
 
+//   // Keep user session synchronized with Firebase Authentication.
 //   useEffect(() => {
-//     let mounted = true;
-
-//     const loadProducts = async () => {
-//       setProductsLoading(true);
-//       try {
-//         const data = await fetchProducts();
-//         if (mounted) {
-//           setProducts(data);
-//         }
-//       } catch (error) {
-//         console.error("Failed to load products", error);
-//         if (mounted) {
-//           setProducts([]);
-//         }
-//       } finally {
-//         if (mounted) {
-//           setProductsLoading(false);
-//         }
+//     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+//       if (!firebaseUser) {
+//         setCurrentUser(null);
+//         localStorage.removeItem("couplo_session");
+//         return;
 //       }
-//     };
 
-//     loadProducts();
-
-//     return () => {
-//       mounted = false;
-//     };
-//   }, []);
-
-//   // Load user session from localStorage
-//   useEffect(() => {
-//     const session = localStorage.getItem("couplo_session");
-//     if (session) {
+//       let profile: Partial<User> = {};
 //       try {
-//         setCurrentUser(JSON.parse(session));
+//         const profileSnap = await getDoc(doc(db, "users", firebaseUser.uid));
+//         profile = profileSnap.exists() ? profileSnap.data() as Partial<User> : {};
 //       } catch (err) {
-//         console.error("Failed to parse user session", err);
+//         console.error("Failed to load user profile", err);
 //       }
-//     }
+
+//       const user: User = {
+//         id: firebaseUser.uid,
+//         name: profile.name || firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "Customer",
+//         email: firebaseUser.email || profile.email || "",
+//         phone: profile.phone || firebaseUser.phoneNumber || undefined,
+//         joinedDate: profile.joinedDate || undefined,
+//       };
+
+//       setCurrentUser(user);
+//       localStorage.setItem("couplo_session", JSON.stringify(user));
+//     });
+
+//     return unsubscribe;
 //   }, []);
 
 //   // Synchronize cart when user changes or initially loads
@@ -113,18 +115,36 @@
 //     setCart(newCart);
 //     if (currentUser) {
 //       localStorage.setItem(`couplo_cart_${currentUser.id}`, JSON.stringify(newCart));
+//       cartService.saveCart(currentUser.id, newCart).catch((error) => {
+//         console.error("Failed to save cart to Firebase:", error);
+//       });
 //     }
 //   };
 
 //   const handleLogin = (user: User) => {
 //     setCurrentUser(user);
 //     localStorage.setItem("couplo_session", JSON.stringify(user));
+
+//     if (productToShowAfterLogin) {
+//       const product = productToShowAfterLogin;
+//       setProductToShowAfterLogin(null);
+//       setActiveView("home");
+//       requestAnimationFrame(() => {
+//         scrollToSection(featuredSectionRef);
+//         quickView.openQuickView(product);
+//       });
+//       return;
+//     }
+
 //     setActiveView("auth");
 //   };
 
 //   const handleLogout = () => {
 //     setCurrentUser(null);
 //     localStorage.removeItem("couplo_session");
+//     signOut(auth).catch((error) => {
+//       console.error("Firebase sign out failed:", error);
+//     });
 //   };
 
 //   const handleLogoClick = () => {
@@ -133,21 +153,35 @@
 //     window.scrollTo({ top: 0, behavior: "smooth" });
 //   };
 
-//   const handleAddToCart = (product: Product, quantity: number, size?: string, color?: string) => {
+//   const handleAddToCart = (
+//     product: Product,
+//     quantity: number,
+//     size?: string,
+//     color?: string,
+//     customization?: CustomizationDetails,
+//   ) => {
 //     if (!currentUser) {
 //       showToast("Please sign in to add items to your cart", "info");
 //       setActiveView("auth");
 //       return;
 //     }
 
-//     const actualSize = size || (product.sizes ? product.sizes[0] : undefined);
-//     const actualColor = color || (product.colors ? product.colors[0].name : undefined);
+//     const actualSize = size;
+//     const actualColor = color;
+//     const cartCustomization = customization
+//       ? {
+//           ...customization,
+//           embroideredText: customization.babyName,
+//         }
+//       : undefined;
+//     const customizationKey = JSON.stringify(cartCustomization || null);
 
 //     const existingIndex = cart.findIndex(
 //       (item) =>
 //         item.product.id === product.id &&
 //         item.selectedSize === actualSize &&
-//         item.selectedColor === actualColor
+//         item.selectedColor === actualColor &&
+//         JSON.stringify(item.customization || null) === customizationKey
 //     );
 
 //     let newCart = [...cart];
@@ -159,6 +193,7 @@
 //         quantity,
 //         selectedSize: actualSize,
 //         selectedColor: actualColor,
+//         customization: cartCustomization,
 //       });
 //     }
 
@@ -184,83 +219,32 @@
 //     }
 //   };
 
-//   const handleCheckoutCart = () => {
+//   const handleCheckoutCart = async () => {
 //     if (!currentUser || cart.length === 0) return;
 
-//     // Calculate subtotal
 //     const subtotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 //     const dateOptions: Intl.DateTimeFormatOptions = { month: "long", year: "numeric", day: "numeric" };
 //     const todayStr = new Date().toLocaleDateString("en-US", dateOptions);
 
-//     // Format WhatsApp message
 //     let message = `Hi Couplo Baby Sets! 🌸 I would love to place an order for the following items:\n\n`;
 //     cart.forEach((item, index) => {
 //       const sizeStr = item.selectedSize ? `\n   • Size: ${item.selectedSize}` : "";
 //       const colorStr = item.selectedColor ? `\n   • Color: ${item.selectedColor}` : "";
-//       message += `${index + 1}. *${item.product.name}* x ${item.quantity}${sizeStr}${colorStr}\n   • Price: $${(item.product.price * item.quantity).toFixed(2)}\n\n`;
+//       message += `${index + 1}. *${item.product.name}* x ${item.quantity}${sizeStr}${colorStr}\n   • Price: ₹${(item.product.price * item.quantity).toFixed(2)}\n\n`;
 //     });
-//     message += `Total Amount: $${subtotal.toFixed(2)}\n`;
+//     message += `Total Amount: ₹${subtotal.toFixed(2)}\n`;
 //     message += `Customer: ${currentUser.name} (${currentUser.email})\n\n`;
 //     message += `Please let me know availability and payment details. Thank you! ✨`;
 
-//     // Save order details dynamically to localStorage for the user dashboard
-//     const orderId = `CB-${Math.floor(1000 + Math.random() * 9000)}`;
-//     const newOrder = {
-//       id: orderId,
-//       date: todayStr,
-//       productName: cart.map((item) => `${item.product.name} (x${item.quantity})`).join(", "),
-//       qty: cart.reduce((sum, item) => sum + item.quantity, 0),
-//       total: `$${subtotal.toFixed(2)}`,
-//       status: "Pending",
-//       statusColor: "bg-blue-100 text-blue-800 border-blue-200",
-//       notes: "Awaiting WhatsApp confirmation from Couplo concierge.",
-//     };
-
-//     const storedOrdersKey = `couplo_orders_${currentUser.id}`;
-//     const existingOrdersStr = localStorage.getItem(storedOrdersKey);
-//     let orders = [];
-//     if (existingOrdersStr) {
-//       try {
-//         orders = JSON.parse(existingOrdersStr);
-//       } catch (e) {
-//         console.error("Failed to parse orders history", e);
-//       }
-//     } else {
-//       // Seed default orders if user is Emily Watson
-//       if (currentUser.email === "parent@couplo.com") {
-//         const defaultMock = [
-//           {
-//             id: "CB-8492",
-//             date: "June 25, 2026",
-//             productName: "Premium Newborn Gift Set (Custom Embroidery)",
-//             qty: 1,
-//             total: "$68.00",
-//             status: "Shipped",
-//             statusColor: "bg-amber-100 text-amber-800 border-amber-200",
-//             notes: "WhatsApp coordination completed. Parcel in transit.",
-//           },
-//           {
-//             id: "CB-8123",
-//             date: "May 12, 2026",
-//             productName: "Organic Cotton Ribbed Romper & Hat Set",
-//             qty: 2,
-//             total: "$85.00",
-//             status: "Delivered",
-//             statusColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-//             notes: "Delivered. WhatsApp confirmation received.",
-//           },
-//         ];
-//         orders = [...defaultMock];
-//       }
+//     const savedOrder = await orderService.createOrder(currentUser, cart, message, false);
+//     if (!savedOrder) {
+//       showToast("Could not save your order to Firebase. Please try again.", "info");
+//       return;
 //     }
-//     orders.unshift(newOrder);
-//     localStorage.setItem(storedOrdersKey, JSON.stringify(orders));
 
-//     // Clear cart and close drawer
 //     saveCart([]);
 //     setCartOpen(false);
 
-//     // Redirect to WhatsApp
 //     const encoded = encodeURIComponent(message);
 //     window.open(`https://wa.me/?text=${encoded}`, "_blank");
 
@@ -276,17 +260,18 @@
 //       setCartOpen(true);
 //     }
 //   };
-
+// // In your App.tsx, add this after the hook:
+// console.log("🔍 Products from Firebase:", products);
+// console.log("⏳ Loading state:", productsLoading);
 //   const filteredProducts = useMemo(() => {
 //     return products.filter((product) => {
-//       const matchesCategory =
-//         categoryFilter === "all" || product.category === categoryFilter;
+//       const matchesCategory = categoryMatches(product.category, categoryFilter);
 //       const matchesSearch =
 //         product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
 //         product.description.toLowerCase().includes(searchQuery.toLowerCase());
 //       return matchesCategory && matchesSearch;
 //     });
-//   }, [categoryFilter, searchQuery]);
+//   }, [categoryFilter, searchQuery, products]);
 
 //   const scrollToSection = (ref: React.RefObject<HTMLDivElement | null>) => {
 //     ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -297,12 +282,17 @@
 //     scrollToSection(featuredSectionRef);
 //   };
 
-//   /** Opens customization modal before ordering via WhatsApp */
-//   const handleOrder = (product: Product, size?: string, color?: string) => {
-//     customizationFlow.openCustomization(product, "order", { size, color });
+//   const handleOrder = (product: Product, quantity = 1, size?: string, color?: string) => {
+//     if (!currentUser) {
+//       showToast("Please sign in to place a direct order", "info");
+//       setProductToShowAfterLogin(product);
+//       setActiveView("auth");
+//       return;
+//     }
+
+//     customizationFlow.openCustomization(product, "order", { size, color, quantity });
 //   };
 
-//   /** Opens customization modal before adding to bag */
 //   const handleAddToCartWithCustomization = (
 //     product: Product,
 //     quantity: number,
@@ -311,22 +301,53 @@
 //   ) => {
 //     if (!currentUser) {
 //       showToast("Please sign in to add items to your cart", "info");
+//       setProductToShowAfterLogin(product);
 //       setActiveView("auth");
 //       return;
 //     }
 //     customizationFlow.openCustomization(product, "cart", { size, color, quantity });
 //   };
 
-//   /** Called when user confirms customization — routes to WhatsApp or bag */
-//   const handleCustomizationConfirm = (customization: CustomizationDetails) => {
+//   const handleCustomizationConfirm = async (customization: CustomizationDetails) => {
 //     const { product, intent, selectedSize, selectedColor, quantity } = customizationFlow.state;
 //     if (!product || !intent) return;
 //     customizationFlow.closeCustomization();
 
 //     if (intent === "order") {
-//       openWhatsAppOrder(product, selectedSize, selectedColor, customization);
+//       if (!currentUser) return;
+
+//       const total = product.price * quantity;
+//       const dateOptions: Intl.DateTimeFormatOptions = { month: "long", year: "numeric", day: "numeric" };
+//       const todayStr = new Date().toLocaleDateString("en-US", dateOptions);
+//       const sizeStr = selectedSize ? `\n   - Size: ${selectedSize}` : "";
+//       const colorStr = selectedColor ? `\n   - Color: ${selectedColor}` : "";
+//       const babyNameStr = customization.babyName ? `\n   - Baby's Name: ${customization.babyName}` : "";
+//       const babyAgeStr = customization.babyAge ? `\n   - Baby's Age: ${customization.babyAge}` : "";
+
+//       let message = `Hi Couplo Baby Sets! I would love to place an order for the following item:\n\n`;
+//       message += `1. *${product.name}* x ${quantity}${sizeStr}${colorStr}${babyNameStr}${babyAgeStr}\n`;
+//       message += `   - Price: ₹${total.toFixed(2)}\n\n`;
+//       message += `Total Amount: ₹${total.toFixed(2)}\n`;
+//       message += `Customer: ${currentUser.name} (${currentUser.email})\n\n`;
+//       message += `Please let me know availability and payment details. Thank you!`;
+
+//       const savedOrder = await orderService.createSingleOrder(currentUser, product, quantity, {
+//         ...customization,
+//         selectedSize,
+//         selectedColor,
+//       }, message, false);
+//       if (!savedOrder) {
+//         showToast("Could not save your order to Firebase. Please try again.", "info");
+//         return;
+//       }
+
+//       const encoded = encodeURIComponent(message);
+//       window.open(`https://wa.me/?text=${encoded}`, "_blank");
+
+//       showToast("Direct order initiated! WhatsApp chat opened and order saved.", "success");
+//       setActiveView("auth");
 //     } else {
-//       handleAddToCart(product, quantity, selectedSize, selectedColor);
+//       handleAddToCart(product, quantity, selectedSize, selectedColor, customization);
 //       showToast(`✨ Customized ${product.name} added to your bag!`, "success");
 //     }
 //   };
@@ -347,23 +368,20 @@
 
 //       <QuickViewModal
 //         product={quickView.selectedProduct}
-//         size={quickView.size}
-//         onSizeChange={quickView.setSize}
-//         color={quickView.color}
-//         onColorChange={quickView.setColor}
 //         quantity={quickView.quantity}
 //         onQuantityChange={quickView.setQuantity}
 //         onClose={quickView.closeQuickView}
-//         onOrder={(product, size, color) => {
+//         onOrder={(product, quantity) => {
 //           quickView.closeQuickView();
-//           handleOrder(product, size, color);
+//           handleOrder(product, quantity);
 //         }}
-//         onAddToCart={(product, quantity, size, color) => {
+//         onAddToCart={(product, quantity) => {
 //           quickView.closeQuickView();
-//           handleAddToCartWithCustomization(product, quantity, size, color);
+//           handleAddToCartWithCustomization(product, quantity);
 //         }}
+//         currentUser={currentUser}
 //       />
-
+      
 //       <CustomizationModal
 //         open={customizationFlow.state.open}
 //         product={customizationFlow.state.product}
@@ -403,6 +421,8 @@
 //         onRemoveItem={handleRemoveFromCart}
 //         onUpdateQuantity={handleUpdateCartQuantity}
 //         onCheckout={handleCheckoutCart}
+//         currentUser={currentUser}  // ✅ Pass current user
+//   onShowToast={showToast}    
 //       />
 
 //       <main className="flex-grow">
@@ -430,16 +450,20 @@
 //               ref={featuredSectionRef}
 //               products={filteredProducts}
 //               categoryFilter={categoryFilter}
+//               categoryTabs={["all", ...categories.map((item) => item.value)]}
+//               getCategoryLabel={(cat) => getCategoryLabel(cat, categories)}
 //               onCategoryChange={setCategoryFilter}
 //               onQuickView={quickView.openQuickView}
 //               onOrder={(product) => handleOrder(product)}
 //               onAddToCart={(product) => handleAddToCartWithCustomization(product, 1)}
-//               loading={productsLoading}
+//               loading={productsLoading || categoriesLoading}
 //             />
 
 //             <WhyChooseUs />
+//             <PremiumCustomization />
 //             <CustomerReviews />
 //             <OurStory />
+//             <ReturnClaims />
 //           </>
 //         )}
 //       </main>
@@ -449,7 +473,8 @@
 //           setActiveView("home");
 //           handleCategoryBlockClick(cat);
 //         }}
-//         onShowToast={showToast}
+//         categories={categories}
+//         categoriesLoading={categoriesLoading}
 //       />
 
 //       <ScrollToTopButton visible={showScrollTop} />
@@ -459,488 +484,237 @@
 
 
 
+import { motion } from "motion/react";
+import { Baby, Heart, Sparkles, Clock, ArrowRight } from "lucide-react";
+import { useState, useEffect } from "react";
 
+function App() {
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const words = ["Beautiful", "Premium", "Adorable", "Custom", "Magical"];
 
-import { useMemo, useRef, useState, useEffect } from "react";
-import { CategoryFilter, Product, User, CartItem } from "./types";
-import { useUserProducts } from "./hooks/useProducts"; // ✅ Import the hook
-import { useCategories } from "./hooks/useCategories";
-import { categoryMatches, getCategoryLabel } from "./utils/categoryUtils";
-import { orderService } from "./services/orderService";
-import { cartService } from "./services/cartService";
-import { auth, db } from "./firebase";
-import { onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
-
-import { useToast } from "./hooks/useToast";
-import { useScrollVisibility } from "./hooks/useScrollVisibility";
-import { useQuickView } from "./hooks/useQuickView";
-import { useCustomizationFlow } from "./hooks/useCustomizationFlow";
-import { CustomizationDetails } from "./types/customization";
-import PremiumCustomization from "./components/home/PremiumCustomization";
-
-import Header from "./components/layout/Header";
-import Footer from "./components/layout/Footer";
-import HeroBanner from "./components/home/HeroBanner";
-import CuratedCollections from "./components/home/CuratedCollections";
-import FeaturedProducts from "./components/home/FeaturedProducts";
-import WhyChooseUs from "./components/home/WhyChooseUs";
-import OurStory from "./components/home/OurStory";
-import CustomerReviews from "./components/home/CustomerReviews";
-import ReturnClaims from "./components/home/ReturnClaims";
-import SearchOverlay from "./components/overlays/SearchOverlay";
-import QuickViewModal from "./components/overlays/QuickViewModal";
-import ToastContainer from "./components/overlays/ToastContainer";
-import ScrollToTopButton from "./components/overlays/ScrollToTopButton";
-import AuthPage from "./components/auth/AuthPage";
-import CartDrawer from "./components/overlays/CartDrawer";
-import CustomizationModal from "./components/overlays/CustomizationModal";
-
-export default function App() {
-  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [activeView, setActiveView] = useState<"home" | "auth">("home");
-  const [productToShowAfterLogin, setProductToShowAfterLogin] = useState<Product | null>(null);
-
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [cartOpen, setCartOpen] = useState(false);
-
-  // ✅ Use the same approach as admin - real-time updates
-  const { products, loading: productsLoading } = useUserProducts();
-  const { categories, loading: categoriesLoading } = useCategories();
-
-  const { toasts, showToast, dismissToast } = useToast();
-  const showScrollTop = useScrollVisibility(400);
-  const quickView = useQuickView();
-  const customizationFlow = useCustomizationFlow();
-
-  const featuredSectionRef = useRef<HTMLDivElement>(null);
-  const collectionsSectionRef = useRef<HTMLDivElement>(null);
-
-  // Keep user session synchronized with Firebase Authentication.
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (!firebaseUser) {
-        setCurrentUser(null);
-        localStorage.removeItem("couplo_session");
-        return;
-      }
-
-      let profile: Partial<User> = {};
-      try {
-        const profileSnap = await getDoc(doc(db, "users", firebaseUser.uid));
-        profile = profileSnap.exists() ? profileSnap.data() as Partial<User> : {};
-      } catch (err) {
-        console.error("Failed to load user profile", err);
-      }
-
-      const user: User = {
-        id: firebaseUser.uid,
-        name: profile.name || firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "Customer",
-        email: firebaseUser.email || profile.email || "",
-        phone: profile.phone || firebaseUser.phoneNumber || undefined,
-        joinedDate: profile.joinedDate || undefined,
-      };
-
-      setCurrentUser(user);
-      localStorage.setItem("couplo_session", JSON.stringify(user));
-    });
-
-    return unsubscribe;
+    const interval = setInterval(() => {
+      setCurrentWordIndex((prev) => (prev + 1) % words.length);
+    }, 2000);
+    return () => clearInterval(interval);
   }, []);
 
-  // Synchronize cart when user changes or initially loads
-  useEffect(() => {
-    if (currentUser) {
-      const storedCart = localStorage.getItem(`couplo_cart_${currentUser.id}`);
-      if (storedCart) {
-        try {
-          setCart(JSON.parse(storedCart));
-        } catch (err) {
-          console.error("Failed to parse user cart", err);
-          setCart([]);
-        }
-      } else {
-        setCart([]);
-      }
-    } else {
-      setCart([]);
-      setCartOpen(false);
-    }
-  }, [currentUser]);
-
-  // Helper to save cart to localStorage
-  const saveCart = (newCart: CartItem[]) => {
-    setCart(newCart);
-    if (currentUser) {
-      localStorage.setItem(`couplo_cart_${currentUser.id}`, JSON.stringify(newCart));
-      cartService.saveCart(currentUser.id, newCart).catch((error) => {
-        console.error("Failed to save cart to Firebase:", error);
-      });
-    }
-  };
-
-  const handleLogin = (user: User) => {
-    setCurrentUser(user);
-    localStorage.setItem("couplo_session", JSON.stringify(user));
-
-    if (productToShowAfterLogin) {
-      const product = productToShowAfterLogin;
-      setProductToShowAfterLogin(null);
-      setActiveView("home");
-      requestAnimationFrame(() => {
-        scrollToSection(featuredSectionRef);
-        quickView.openQuickView(product);
-      });
-      return;
-    }
-
-    setActiveView("auth");
-  };
-
-  const handleLogout = () => {
-    setCurrentUser(null);
-    localStorage.removeItem("couplo_session");
-    signOut(auth).catch((error) => {
-      console.error("Firebase sign out failed:", error);
-    });
-  };
-
-  const handleLogoClick = () => {
-    setActiveView("home");
-    setCategoryFilter("all");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const handleAddToCart = (
-    product: Product,
-    quantity: number,
-    size?: string,
-    color?: string,
-    customization?: CustomizationDetails,
-  ) => {
-    if (!currentUser) {
-      showToast("Please sign in to add items to your cart", "info");
-      setActiveView("auth");
-      return;
-    }
-
-    const actualSize = size;
-    const actualColor = color;
-    const cartCustomization = customization
-      ? {
-          ...customization,
-          embroideredText: customization.babyName,
-        }
-      : undefined;
-    const customizationKey = JSON.stringify(cartCustomization || null);
-
-    const existingIndex = cart.findIndex(
-      (item) =>
-        item.product.id === product.id &&
-        item.selectedSize === actualSize &&
-        item.selectedColor === actualColor &&
-        JSON.stringify(item.customization || null) === customizationKey
-    );
-
-    let newCart = [...cart];
-    if (existingIndex > -1) {
-      newCart[existingIndex].quantity += quantity;
-    } else {
-      newCart.push({
-        product,
-        quantity,
-        selectedSize: actualSize,
-        selectedColor: actualColor,
-        customization: cartCustomization,
-      });
-    }
-
-    saveCart(newCart);
-    showToast(`Added ${product.name} to cart!`, "success");
-    setCartOpen(true);
-  };
-
-  const handleRemoveFromCart = (index: number) => {
-    const item = cart[index];
-    const newCart = cart.filter((_, i) => i !== index);
-    saveCart(newCart);
-    if (item) {
-      showToast(`Removed ${item.product.name} from cart`, "info");
-    }
-  };
-
-  const handleUpdateCartQuantity = (index: number, quantity: number) => {
-    const newCart = [...cart];
-    if (newCart[index]) {
-      newCart[index].quantity = quantity;
-      saveCart(newCart);
-    }
-  };
-
-  const handleCheckoutCart = async () => {
-    if (!currentUser || cart.length === 0) return;
-
-    const subtotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-    const dateOptions: Intl.DateTimeFormatOptions = { month: "long", year: "numeric", day: "numeric" };
-    const todayStr = new Date().toLocaleDateString("en-US", dateOptions);
-
-    let message = `Hi Couplo Baby Sets! 🌸 I would love to place an order for the following items:\n\n`;
-    cart.forEach((item, index) => {
-      const sizeStr = item.selectedSize ? `\n   • Size: ${item.selectedSize}` : "";
-      const colorStr = item.selectedColor ? `\n   • Color: ${item.selectedColor}` : "";
-      message += `${index + 1}. *${item.product.name}* x ${item.quantity}${sizeStr}${colorStr}\n   • Price: ₹${(item.product.price * item.quantity).toFixed(2)}\n\n`;
-    });
-    message += `Total Amount: ₹${subtotal.toFixed(2)}\n`;
-    message += `Customer: ${currentUser.name} (${currentUser.email})\n\n`;
-    message += `Please let me know availability and payment details. Thank you! ✨`;
-
-    const savedOrder = await orderService.createOrder(currentUser, cart, message, false);
-    if (!savedOrder) {
-      showToast("Could not save your order to Firebase. Please try again.", "info");
-      return;
-    }
-
-    saveCart([]);
-    setCartOpen(false);
-
-    const encoded = encodeURIComponent(message);
-    window.open(`https://wa.me/?text=${encoded}`, "_blank");
-
-    showToast("Checkout initiated! WhatsApp chat opened and order saved.", "success");
-    setActiveView("auth");
-  };
-
-  const handleOpenCart = () => {
-    if (!currentUser) {
-      showToast("Please sign in to access your shopping bag", "info");
-      setActiveView("auth");
-    } else {
-      setCartOpen(true);
-    }
-  };
-// In your App.tsx, add this after the hook:
-console.log("🔍 Products from Firebase:", products);
-console.log("⏳ Loading state:", productsLoading);
-  const filteredProducts = useMemo(() => {
-    return products.filter((product) => {
-      const matchesCategory = categoryMatches(product.category, categoryFilter);
-      const matchesSearch =
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesCategory && matchesSearch;
-    });
-  }, [categoryFilter, searchQuery, products]);
-
-  const scrollToSection = (ref: React.RefObject<HTMLDivElement | null>) => {
-    ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
-  const handleCategoryBlockClick = (cat: CategoryFilter) => {
-    setCategoryFilter(cat);
-    scrollToSection(featuredSectionRef);
-  };
-
-  const handleOrder = (product: Product, quantity = 1, size?: string, color?: string) => {
-    if (!currentUser) {
-      showToast("Please sign in to place a direct order", "info");
-      setProductToShowAfterLogin(product);
-      setActiveView("auth");
-      return;
-    }
-
-    customizationFlow.openCustomization(product, "order", { size, color, quantity });
-  };
-
-  const handleAddToCartWithCustomization = (
-    product: Product,
-    quantity: number,
-    size?: string,
-    color?: string,
-  ) => {
-    if (!currentUser) {
-      showToast("Please sign in to add items to your cart", "info");
-      setProductToShowAfterLogin(product);
-      setActiveView("auth");
-      return;
-    }
-    customizationFlow.openCustomization(product, "cart", { size, color, quantity });
-  };
-
-  const handleCustomizationConfirm = async (customization: CustomizationDetails) => {
-    const { product, intent, selectedSize, selectedColor, quantity } = customizationFlow.state;
-    if (!product || !intent) return;
-    customizationFlow.closeCustomization();
-
-    if (intent === "order") {
-      if (!currentUser) return;
-
-      const total = product.price * quantity;
-      const dateOptions: Intl.DateTimeFormatOptions = { month: "long", year: "numeric", day: "numeric" };
-      const todayStr = new Date().toLocaleDateString("en-US", dateOptions);
-      const sizeStr = selectedSize ? `\n   - Size: ${selectedSize}` : "";
-      const colorStr = selectedColor ? `\n   - Color: ${selectedColor}` : "";
-      const babyNameStr = customization.babyName ? `\n   - Baby's Name: ${customization.babyName}` : "";
-      const babyAgeStr = customization.babyAge ? `\n   - Baby's Age: ${customization.babyAge}` : "";
-
-      let message = `Hi Couplo Baby Sets! I would love to place an order for the following item:\n\n`;
-      message += `1. *${product.name}* x ${quantity}${sizeStr}${colorStr}${babyNameStr}${babyAgeStr}\n`;
-      message += `   - Price: ₹${total.toFixed(2)}\n\n`;
-      message += `Total Amount: ₹${total.toFixed(2)}\n`;
-      message += `Customer: ${currentUser.name} (${currentUser.email})\n\n`;
-      message += `Please let me know availability and payment details. Thank you!`;
-
-      const savedOrder = await orderService.createSingleOrder(currentUser, product, quantity, {
-        ...customization,
-        selectedSize,
-        selectedColor,
-      }, message, false);
-      if (!savedOrder) {
-        showToast("Could not save your order to Firebase. Please try again.", "info");
-        return;
-      }
-
-      const encoded = encodeURIComponent(message);
-      window.open(`https://wa.me/?text=${encoded}`, "_blank");
-
-      showToast("Direct order initiated! WhatsApp chat opened and order saved.", "success");
-      setActiveView("auth");
-    } else {
-      handleAddToCart(product, quantity, selectedSize, selectedColor, customization);
-      showToast(`✨ Customized ${product.name} added to your bag!`, "success");
-    }
-  };
-
   return (
-    <div
-      id="couplo-baby-sets-root"
-      className="min-h-screen bg-background text-on-surface font-sans flex flex-col relative selection:bg-primary/20 selection:text-primary"
-    >
-      <SearchOverlay
-        open={searchOpen}
-        onClose={() => setSearchOpen(false)}
-        searchQuery={searchQuery}
-        onSearchQueryChange={setSearchQuery}
-        results={filteredProducts}
-        onSelectProduct={quickView.openQuickView}
-      />
-
-      <QuickViewModal
-        product={quickView.selectedProduct}
-        quantity={quickView.quantity}
-        onQuantityChange={quickView.setQuantity}
-        onClose={quickView.closeQuickView}
-        onOrder={(product, quantity) => {
-          quickView.closeQuickView();
-          handleOrder(product, quantity);
-        }}
-        onAddToCart={(product, quantity) => {
-          quickView.closeQuickView();
-          handleAddToCartWithCustomization(product, quantity);
-        }}
-        currentUser={currentUser}
-      />
-      
-      <CustomizationModal
-        open={customizationFlow.state.open}
-        product={customizationFlow.state.product}
-        intent={customizationFlow.state.intent}
-        customization={customizationFlow.state.customization}
-        selectedSize={customizationFlow.state.selectedSize}
-        selectedColor={customizationFlow.state.selectedColor}
-        quantity={customizationFlow.state.quantity}
-        onChange={customizationFlow.updateCustomization}
-        onClose={customizationFlow.closeCustomization}
-        onConfirm={handleCustomizationConfirm}
-      />
-
-      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
-
-      <Header
-        mobileMenuOpen={mobileMenuOpen}
-        onToggleMobileMenu={() => setMobileMenuOpen((open) => !open)}
-        onCloseMobileMenu={() => setMobileMenuOpen(false)}
-        onOpenSearch={() => setSearchOpen(true)}
-        onCategoryClick={(cat) => {
-          setActiveView("home");
-          handleCategoryBlockClick(cat);
-        }}
-        activeView={activeView}
-        currentUser={currentUser}
-        onAccountClick={() => setActiveView(activeView === "auth" ? "home" : "auth")}
-        onLogoClick={handleLogoClick}
-        cart={cart}
-        onOpenCart={handleOpenCart}
-      />
-
-      <CartDrawer
-        open={cartOpen}
-        onClose={() => setCartOpen(false)}
-        cart={cart}
-        onRemoveItem={handleRemoveFromCart}
-        onUpdateQuantity={handleUpdateCartQuantity}
-        onCheckout={handleCheckoutCart}
-        currentUser={currentUser}  // ✅ Pass current user
-  onShowToast={showToast}    
-      />
-
-      <main className="flex-grow">
-        {activeView === "auth" ? (
-          <AuthPage
-            currentUser={currentUser}
-            onLogin={handleLogin}
-            onLogout={handleLogout}
-            onShowToast={showToast}
-            onBackToHome={() => setActiveView("home")}
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-[#FFF5F7] via-[#FFF0F5] to-[#FFE4E9] flex items-center justify-center p-4">
+      {/* Animated Background Particles */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(30)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-1 h-1 rounded-full"
+            style={{
+              background: i % 2 === 0 ? '#FFB6C1' : '#FF69B4',
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              y: [0, -30, 0],
+              opacity: [0, 1, 0],
+              scale: [0, 1, 0],
+            }}
+            transition={{
+              duration: 3 + Math.random() * 4,
+              repeat: Infinity,
+              delay: Math.random() * 3,
+            }}
           />
-        ) : (
-          <>
-            <HeroBanner
-              onShopCollection={() => scrollToSection(featuredSectionRef)}
-              onExploreCategories={() => scrollToSection(collectionsSectionRef)}
-            />
+        ))}
+      </div>
 
-            <CuratedCollections
-              ref={collectionsSectionRef}
-              onCategoryClick={handleCategoryBlockClick}
-            />
+      {/* Floating Decorations */}
+      <motion.div
+        className="absolute top-10 left-10 text-6xl opacity-20"
+        animate={{ y: [0, -20, 0], rotate: [0, 10, -10, 0] }}
+        transition={{ duration: 4, repeat: Infinity }}
+      >
+        👶
+      </motion.div>
+      <motion.div
+        className="absolute bottom-10 right-10 text-6xl opacity-20"
+        animate={{ y: [0, 20, 0], rotate: [0, -10, 10, 0] }}
+        transition={{ duration: 4, repeat: Infinity, delay: 1 }}
+      >
+        🎀
+      </motion.div>
+      <motion.div
+        className="absolute top-1/4 right-10 text-5xl opacity-15"
+        animate={{ y: [0, -15, 0], scale: [1, 1.2, 1] }}
+        transition={{ duration: 3, repeat: Infinity, delay: 0.5 }}
+      >
+        ✨
+      </motion.div>
+      <motion.div
+        className="absolute bottom-1/4 left-10 text-5xl opacity-15"
+        animate={{ y: [0, 15, 0], scale: [1, 1.2, 1] }}
+        transition={{ duration: 3, repeat: Infinity, delay: 1.5 }}
+      >
+        🌟
+      </motion.div>
 
-            <FeaturedProducts
-              ref={featuredSectionRef}
-              products={filteredProducts}
-              categoryFilter={categoryFilter}
-              categoryTabs={["all", ...categories.map((item) => item.value)]}
-              getCategoryLabel={(cat) => getCategoryLabel(cat, categories)}
-              onCategoryChange={setCategoryFilter}
-              onQuickView={quickView.openQuickView}
-              onOrder={(product) => handleOrder(product)}
-              onAddToCart={(product) => handleAddToCartWithCustomization(product, 1)}
-              loading={productsLoading || categoriesLoading}
-            />
+      {/* Main Content */}
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, type: "spring" }}
+        className="relative z-10 max-w-3xl w-full text-center"
+      >
+        {/* Animated Icon */}
+        <motion.div
+          initial={{ scale: 0, rotate: -180 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ duration: 0.8, type: "spring" }}
+          className="inline-flex items-center justify-center w-32 h-32 rounded-full bg-gradient-to-br from-pink-400 to-rose-400 shadow-2xl mb-8 relative"
+        >
+          <Baby className="w-16 h-16 text-white" />
+          <motion.div
+            className="absolute -top-2 -right-2 text-2xl"
+            animate={{ rotate: [0, 20, -20, 0], scale: [1, 1.3, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            ✨
+          </motion.div>
+        </motion.div>
 
-            <WhyChooseUs />
-            <PremiumCustomization />
-            <CustomerReviews />
-            <OurStory />
-            <ReturnClaims />
-          </>
-        )}
-      </main>
+        {/* Coming Soon Badge with Pulse */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="inline-flex items-center gap-2 bg-white/90 backdrop-blur-sm px-6 py-2.5 rounded-full text-pink-500 text-xs font-bold uppercase tracking-wider shadow-lg border border-pink-100 mb-6"
+        >
+          <motion.div
+            animate={{ scale: [1, 1.3, 1] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+          >
+            <Clock className="w-4 h-4" />
+          </motion.div>
+          Coming Soon
+          <motion.div
+            animate={{ scale: [1, 1.3, 1] }}
+            transition={{ duration: 1.5, repeat: Infinity, delay: 0.5 }}
+          >
+            <Sparkles className="w-4 h-4" />
+          </motion.div>
+        </motion.div>
 
-      <Footer
-        onCategoryClick={(cat) => {
-          setActiveView("home");
-          handleCategoryBlockClick(cat);
-        }}
-        categories={categories}
-        categoriesLoading={categoriesLoading}
-      />
+        {/* Main Animated Heading */}
+        <div className="mb-4">
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-gray-800"
+          >
+            Something
+          </motion.h1>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.4, type: "spring" }}
+            className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold mt-1"
+          >
+            <span className="bg-gradient-to-r from-pink-500 via-rose-400 to-pink-500 bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">
+              {words[currentWordIndex]}
+            </span>
+            <span className="text-gray-800"> Is Coming</span>
+          </motion.div>
+        </div>
 
-      <ScrollToTopButton visible={showScrollTop} />
+        {/* Animated Underline */}
+        <motion.div
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ delay: 0.5, duration: 0.8 }}
+          className="h-0.5 w-24 mx-auto bg-gradient-to-r from-pink-300 to-rose-300 rounded-full mb-6"
+        />
+
+        {/* Description with Typewriter Effect */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="text-gray-500 text-base md:text-lg max-w-lg mx-auto leading-relaxed"
+        >
+          We're crafting the perfect collection for your little ones.
+          <br />
+          <span className="text-pink-400 font-medium">Get ready for something special! ✨</span>
+        </motion.p>
+
+        {/* Animated Feature Icons */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+          className="flex justify-center gap-6 mt-8"
+        >
+          {[
+            { icon: "🎨", label: "Custom Designs" },
+            { icon: "🤍", label: "Baby Soft" },
+            { icon: "⭐", label: "Premium Quality" },
+          ].map((item, index) => (
+            <motion.div
+              key={item.label}
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.8 + index * 0.1, type: "spring" }}
+              className="flex flex-col items-center gap-1 group cursor-default"
+              whileHover={{ y: -5 }}
+            >
+              <div className="w-12 h-12 rounded-full bg-white/80 shadow-md flex items-center justify-center text-2xl group-hover:shadow-lg transition-all border border-pink-100">
+                {item.icon}
+              </div>
+              <span className="text-[10px] text-gray-400 font-medium">{item.label}</span>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Decorative */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.9 }}
+          className="mt-8 flex items-center justify-center gap-3"
+        >
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            className="text-pink-300"
+          >
+            <Heart className="w-4 h-4 fill-pink-300" />
+          </motion.div>
+          <span className="text-xs text-gray-300">•</span>
+          <span className="text-xs text-gray-300 font-medium">Made with love</span>
+          <span className="text-xs text-gray-300">•</span>
+          <motion.div
+            animate={{ rotate: -360 }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            className="text-pink-300"
+          >
+            <Heart className="w-4 h-4 fill-pink-300" />
+          </motion.div>
+        </motion.div>
+
+        {/* Animated Border Ring */}
+        <motion.div
+          className="absolute -inset-4 rounded-3xl border-2 border-pink-200/20 pointer-events-none"
+          animate={{
+            scale: [1, 1.02, 1],
+            opacity: [0.3, 0.6, 0.3],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+      </motion.div>
     </div>
   );
 }
+
+export default App;

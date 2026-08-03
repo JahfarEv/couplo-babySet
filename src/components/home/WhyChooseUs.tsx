@@ -13,8 +13,8 @@ const FEATURES = [
   },
   {
     icon: ShieldCheck,
-    title: "Baby Safe",
-    description: "Non-toxic colors and comfort-first materials.",
+    title: "Hygiene Checked",
+    description: "Every outfit is checked and packed with clean, baby-safe care.",
   },
   {
     icon: MessageCircleHeart,

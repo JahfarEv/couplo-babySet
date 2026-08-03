@@ -10,6 +10,8 @@ export interface Product {
   image: string;
   images?: string[];
   description: string;
+  includes?: string[];
+  tags?: string[];
   isNew?: boolean;
   sizes?: string[];
   colors?: { name: string; hex: string }[];

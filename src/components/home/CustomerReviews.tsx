@@ -9,7 +9,6 @@ interface Review {
   location: string;
   avatar: string;
   rating: number;
-  caption: string;
   review: string;
   productName: string;
   productImage: string;
@@ -73,15 +72,10 @@ function ReviewCard({ review, active }: { review: Review; active: boolean }) {
               {/* Star Rating */}
               <StarRating rating={review.rating} size={18} />
 
-              {/* Caption */}
+              {/* Review Highlight */}
               <h3 className="text-xl md:text-2xl font-serif font-bold text-on-surface mt-3 mb-4 leading-snug">
-                "{review.caption}"
+                "{review.review}"
               </h3>
-
-              {/* Review Text */}
-              <p className="text-on-surface-variant text-sm leading-relaxed line-clamp-4">
-                {review.review}
-              </p>
             </div>
 
             {/* Author */}
@@ -194,7 +188,6 @@ export default function CustomerReviews() {
           location: "Verified Customer",
           avatar: r.userName.charAt(0).toUpperCase(),
           rating: r.rating,
-          caption: r.rating === 5 ? "Absolutely in love!" : "Beautiful quality",
           review: r.comment,
           productName: product?.name || "Premium Baby Set",
           productImage: product?.image || "/babyset/set1.jpeg",

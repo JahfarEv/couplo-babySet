@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { Sparkles, ArrowRight, Star, Heart, Baby } from "lucide-react";
+import { Sparkles, ArrowRight, Star, Heart, Baby, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion } from "motion/react";
-import { bannerService } from "../../services/bannerService";
+import { Banner, bannerService } from "../../services/bannerService";
 
 interface HeroBannerProps {
   onShopCollection: () => void;
@@ -10,30 +10,28 @@ interface HeroBannerProps {
 
 const CLOTHING_ITEMS = ["Onesies", "Rompers", "Frocks", "Kurtas", "Tiny Tees", "Gift Sets"];
 const FALLBACK_IMAGE = "/baby.jpg";
+const SLIDE_INTERVAL_MS = 4500;
 
 export default function HeroBanner({ onShopCollection, onExploreCategories }: HeroBannerProps) {
-  const [bannerUrl, setBannerUrl] = useState<string>(FALLBACK_IMAGE);
-  const [bannerAlt, setBannerAlt] = useState<string>("Adorable baby wearing a customised occasion outfit");
-  const [imageLoaded, setImageLoaded] = useState(false);
+  const [banners, setBanners] = useState<Banner[]>([
+    {
+      id: "fallback",
+      imageUrl: FALLBACK_IMAGE,
+      alt: "Adorable baby wearing a customised occasion outfit",
+    },
+  ]);
+  const [activeSlide, setActiveSlide] = useState(0);
 
   useEffect(() => {
     let mounted = true;
-    bannerService.getPrimaryBanner().then((banner) => {
-      if (!mounted || !banner) return;
 
-      const img = new Image();
-      img.onload = () => {
-        if (!mounted) return;
-        setBannerUrl(banner.imageUrl);
-        setBannerAlt(banner.alt || bannerAlt);
-        setImageLoaded(true);
-      };
-      img.onerror = () => {
-        if (mounted) setImageLoaded(true);
-      };
-      img.src = banner.imageUrl;
+    bannerService.getBanners().then((loadedBanners) => {
+      if (!mounted || !loadedBanners.length) return;
+
+      setBanners(loadedBanners);
+      setActiveSlide(0);
     }).catch(() => {
-      if (mounted) setImageLoaded(true);
+      if (mounted) setActiveSlide(0);
     });
 
     return () => {
@@ -41,27 +39,41 @@ export default function HeroBanner({ onShopCollection, onExploreCategories }: He
     };
   }, []);
 
+  useEffect(() => {
+    if (banners.length < 2) return;
+
+    const interval = window.setInterval(() => {
+      setActiveSlide((current) => (current + 1) % banners.length);
+    }, SLIDE_INTERVAL_MS);
+
+    return () => window.clearInterval(interval);
+  }, [banners.length]);
+
+  const showPreviousSlide = () => {
+    setActiveSlide((current) => (current - 1 + banners.length) % banners.length);
+  };
+
+  const showNextSlide = () => {
+    setActiveSlide((current) => (current + 1) % banners.length);
+  };
+
   return (
     <section
       id="hero-banner"
       className="relative min-h-[540px] md:min-h-[819px] flex items-center justify-center overflow-hidden px-4 md:px-16 py-16"
     >
       <div className="absolute inset-0 z-0">
-        <img
-          src={FALLBACK_IMAGE}
-          alt={bannerAlt}
-          className="w-full h-full object-cover object-center"
-          aria-hidden="true"
-        />
-        {bannerUrl !== FALLBACK_IMAGE && (
+        {banners.map((banner, index) => (
           <img
-            src={bannerUrl}
-            alt={bannerAlt}
+            key={banner.id}
+            src={banner.imageUrl}
+            alt={banner.alt || banner.title || "Couplo Baby Sets banner"}
+            aria-hidden={index !== activeSlide}
             className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-700 ${
-              imageLoaded ? "opacity-100" : "opacity-0"
+              index === activeSlide ? "opacity-100" : "opacity-0"
             }`}
           />
-        )}
+        ))}
         <div className="absolute inset-0 bg-gradient-to-r from-white/88 via-white/52 to-primary/10 md:from-white/82 md:via-white/36 md:to-transparent" />
         <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
       </div>
@@ -83,7 +95,7 @@ export default function HeroBanner({ onShopCollection, onExploreCategories }: He
           <div className="inline-flex items-center gap-2 bg-primary-container px-4 py-1.5 rounded-full border border-primary/10">
             <Sparkles className="w-3.5 h-3.5 text-primary" />
             <span className="text-[10px] tracking-widest uppercase font-bold text-primary">
-              Baby Soft Custom Outfits
+              Baby Soft Personalised Outfits
             </span>
           </div>
 
@@ -138,6 +150,43 @@ export default function HeroBanner({ onShopCollection, onExploreCategories }: He
           </div>
         </motion.div>
       </div>
+
+      {banners.length > 1 && (
+        <div className="absolute inset-x-0 bottom-6 z-20 flex items-center justify-center gap-4 px-4">
+          <button
+            type="button"
+            onClick={showPreviousSlide}
+            aria-label="Previous banner"
+            className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-white/86 text-gray-800 shadow-lg backdrop-blur transition hover:bg-white hover:text-primary"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+
+          <div className="flex items-center gap-2 rounded-full bg-white/80 px-3 py-2 shadow-lg backdrop-blur">
+            {banners.map((banner, index) => (
+              <button
+                key={banner.id}
+                type="button"
+                onClick={() => setActiveSlide(index)}
+                aria-label={`Show banner ${index + 1}`}
+                aria-current={index === activeSlide}
+                className={`h-2.5 rounded-full transition-all ${
+                  index === activeSlide ? "w-7 bg-primary" : "w-2.5 bg-gray-300 hover:bg-primary/50"
+                }`}
+              />
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={showNextSlide}
+            aria-label="Next banner"
+            className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-white/86 text-gray-800 shadow-lg backdrop-blur transition hover:bg-white hover:text-primary"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </div>
+      )}
     </section>
   );
 }

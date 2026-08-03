@@ -26,6 +26,8 @@ export function useProducts() {
               images?: string[];
               colors?: Array<{ name: string; hex: string }>;
               sizes?: string[];
+              includes?: string[];
+              tags?: string[];
             };
 
             return {
@@ -38,6 +40,8 @@ export function useProducts() {
               image: data.image ?? data.images?.[0] ?? fallbackProducts[0]?.image ?? "",
               images: data.images ?? [],
               description: data.description ?? "",
+              includes: data.includes ?? [],
+              tags: data.tags ?? [],
               isNew: Boolean(data.isNew),
               sizes: data.sizes ?? [],
               colors: data.colors ?? [],

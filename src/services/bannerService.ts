@@ -8,6 +8,29 @@ export interface Banner {
   alt?: string;
 }
 
+const toBannerItems = (id: string, data: Record<string, any>): Banner[] => {
+  const imageValues = [
+    data.image,
+    data.imageUrl,
+    ...(Array.isArray(data.images) ? data.images : []),
+    ...(Array.isArray(data.imageUrls) ? data.imageUrls : []),
+  ];
+
+  return imageValues
+    .map((value, index): Banner | null => {
+      const imageUrl = typeof value === "string" ? value : value?.url || value?.imageUrl || value?.image;
+      if (!imageUrl) return null;
+
+      return {
+        id: index === 0 ? id : `${id}-${index}`,
+        imageUrl,
+        title: value?.title || data.title || "",
+        alt: value?.alt || data.alt || value?.title || data.title || "Couplo Baby Sets banner",
+      };
+    })
+    .filter((banner): banner is Banner => Boolean(banner));
+};
+
 export const bannerService = {
   /**
    * Fetch the primary "home" banner from Firestore.
@@ -28,19 +51,14 @@ export const bannerService = {
       }
 
       const data = snapshot.data();
-      const imageUrl = data.image || data.imageUrl || null;
+      const banners = toBannerItems(snapshot.id, data);
 
-      if (!imageUrl) {
+      if (!banners.length) {
         console.warn("Banner document found but has no 'image' field.");
         return null;
       }
 
-      return {
-        id: snapshot.id,
-        imageUrl,
-        title: data.title || "",
-        alt: data.alt || data.title || "Couplo Baby Sets banner",
-      };
+      return banners[0];
     } catch (error) {
       console.error("Error fetching primary banner:", error);
       return null;
@@ -53,19 +71,18 @@ export const bannerService = {
    */
   async getBanners(): Promise<Banner[]> {
     try {
-      const snapshot = await getDocs(collection(db, "banners"));
+      const homeSnap = await getDoc(doc(db, "banners", "home"));
       const banners: Banner[] = [];
 
+      if (homeSnap.exists()) {
+        banners.push(...toBannerItems(homeSnap.id, homeSnap.data()));
+      }
+
+      const snapshot = await getDocs(collection(db, "banners"));
       snapshot.forEach((docSnap) => {
+        if (docSnap.id === "home") return;
         const data = docSnap.data();
-        const imageUrl = data.image || data.imageUrl || null;
-        if (!imageUrl) return;
-        banners.push({
-          id: docSnap.id,
-          imageUrl,
-          title: data.title || "",
-          alt: data.alt || data.title || "Couplo Baby Sets banner",
-        });
+        banners.push(...toBannerItems(docSnap.id, data));
       });
 
       return banners;
@@ -75,4 +92,3 @@ export const bannerService = {
     }
   },
 };
-
