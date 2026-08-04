@@ -223,30 +223,53 @@ export default function App() {
     if (!currentUser || cart.length === 0) return;
 
     const subtotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-    const dateOptions: Intl.DateTimeFormatOptions = { month: "long", year: "numeric", day: "numeric" };
-    const todayStr = new Date().toLocaleDateString("en-US", dateOptions);
 
-    let message = `Hi Couplo Baby Sets! 🌸 I would love to place an order for the following items:\n\n`;
-    cart.forEach((item, index) => {
-      const sizeStr = item.selectedSize ? `\n   • Size: ${item.selectedSize}` : "";
-      const colorStr = item.selectedColor ? `\n   • Color: ${item.selectedColor}` : "";
-      message += `${index + 1}. *${item.product.name}* x ${item.quantity}${sizeStr}${colorStr}\n   • Price: ₹${(item.product.price * item.quantity).toFixed(2)}\n\n`;
-    });
-    message += `Total Amount: ₹${subtotal.toFixed(2)}\n`;
-    message += `Customer: ${currentUser.name} (${currentUser.email})\n\n`;
-    message += `Please let me know availability and payment details. Thank you! ✨`;
-
-    const savedOrder = await orderService.createOrder(currentUser, cart, message, false);
+    // Save order first to get the real Firebase document ID
+    const savedOrder = await orderService.createOrder(currentUser, cart, "", false);
     if (!savedOrder) {
       showToast("Could not save your order to Firebase. Please try again.", "info");
       return;
     }
 
+    const orderId = savedOrder.id || savedOrder.orderId || "N/A";
+
+    // Build the formatted WhatsApp message with the real order ID
+    let message = `Hi Couplo Baby Sets! 🌸\n\n`;
+    message += `🆔 *Order ID:* ${orderId}\n\n`;
+    cart.forEach((item, index) => {
+      message += `📦 *Product ${index + 1}:* ${item.product.name}\n`;
+      message += `💰 *Price:* ₹${(item.product.price * item.quantity).toFixed(2)} (x${item.quantity})\n`;
+      if (item.selectedSize) message += `📏 *Size:* ${item.selectedSize}\n`;
+      if (item.selectedColor) message += `🎨 *Color:* ${item.selectedColor}\n`;
+      const c = item.customization;
+      if (c) {
+        message += `\n✨ *Customization Details*\n`;
+        if (c.babyName) message += `• Baby's Name: ${c.babyName}\n`;
+        if (c.babyAge) message += `• Baby's Age: ${c.babyAge}\n`;
+        if (c.romperName) message += `• Name in Romper: ${c.romperName}\n`;
+        if (c.capName) message += `• Name in Cap: ${c.capName}\n`;
+        if (c.bow) message += `• Bow: ${c.bow}\n`;
+        if (c.designImageName) message += `• Design Image: ${c.designImageName}\n`;
+        if (c.embroideryText || c.embroideredText) message += `• Embroidery Text: ${c.embroideryText || c.embroideredText}\n`;
+        if (c.fontStyle) message += `• Font Style: ${c.fontStyle}\n`;
+        if (c.embroideryColor) message += `• Thread Color: ${c.embroideryColor}\n`;
+        if (c.giftWrap) {
+          message += `• Gift Wrapping: Yes 🎁\n`;
+          if (c.giftMessage) message += `• Gift Card Message: "${c.giftMessage}"\n`;
+        }
+        if (c.specialNotes) message += `• Special Instructions: ${c.specialNotes}\n`;
+      }
+      message += `\n`;
+    });
+    message += `💵 *Total Amount:* ₹${subtotal.toFixed(2)}\n`;
+    message += `👤 *Customer:* ${currentUser.name} (${currentUser.email})\n\n`;
+    message += `Please let me know availability and production timeline.\nThank you! ✨`;
+
     saveCart([]);
     setCartOpen(false);
 
     const encoded = encodeURIComponent(message);
-    window.open(`https://wa.me/?text=${encoded}`, "_blank");
+    window.open(`https://wa.me/919539794665?text=${encoded}`, "_blank");
 
     showToast("Checkout initiated! WhatsApp chat opened and order saved.", "success");
     setActiveView("auth");
@@ -317,32 +340,50 @@ console.log("⏳ Loading state:", productsLoading);
       if (!currentUser) return;
 
       const total = product.price * quantity;
-      const dateOptions: Intl.DateTimeFormatOptions = { month: "long", year: "numeric", day: "numeric" };
-      const todayStr = new Date().toLocaleDateString("en-US", dateOptions);
-      const sizeStr = selectedSize ? `\n   - Size: ${selectedSize}` : "";
-      const colorStr = selectedColor ? `\n   - Color: ${selectedColor}` : "";
-      const babyNameStr = customization.babyName ? `\n   - Baby's Name: ${customization.babyName}` : "";
-      const babyAgeStr = customization.babyAge ? `\n   - Baby's Age: ${customization.babyAge}` : "";
 
-      let message = `Hi Couplo Baby Sets! I would love to place an order for the following item:\n\n`;
-      message += `1. *${product.name}* x ${quantity}${sizeStr}${colorStr}${babyNameStr}${babyAgeStr}\n`;
-      message += `   - Price: ₹${total.toFixed(2)}\n\n`;
-      message += `Total Amount: ₹${total.toFixed(2)}\n`;
-      message += `Customer: ${currentUser.name} (${currentUser.email})\n\n`;
-      message += `Please let me know availability and payment details. Thank you!`;
-
+      // Save order first to get the real Firebase document ID
       const savedOrder = await orderService.createSingleOrder(currentUser, product, quantity, {
         ...customization,
         selectedSize,
         selectedColor,
-      }, message, false);
+      }, "", false);
       if (!savedOrder) {
         showToast("Could not save your order to Firebase. Please try again.", "info");
         return;
       }
 
+      const orderId = savedOrder.id || savedOrder.orderId || "N/A";
+
+      // Build the formatted WhatsApp message with the real Firebase order ID
+      let message = `Hi Couplo Baby Sets! 🌸\n\n`;
+      message += `🆔 *Order ID:* ${orderId}\n\n`;
+      message += `📦 *Product:* ${product.name}\n`;
+      message += `💰 *Price:* ₹${total.toFixed(2)}\n`;
+      if (selectedSize) message += `📏 *Size:* ${selectedSize}\n`;
+      if (selectedColor) message += `🎨 *Color:* ${selectedColor}\n`;
+      if (customization) {
+        message += `\n✨ *Customization Details*\n`;
+        if (customization.babyName) message += `• Baby's Name: ${customization.babyName}\n`;
+        if (customization.babyAge) message += `• Baby's Age: ${customization.babyAge}\n`;
+        if (customization.romperName) message += `• Name in Romper: ${customization.romperName}\n`;
+        if (customization.capName) message += `• Name in Cap: ${customization.capName}\n`;
+        if (customization.bow) message += `• Bow: ${customization.bow}\n`;
+        if (customization.designImageName) message += `• Design Image: ${customization.designImageName}\n`;
+        if (customization.embroideryText || (customization as any).embroideredText) message += `• Embroidery Text: ${customization.embroideryText || (customization as any).embroideredText}\n`;
+        if (customization.fontStyle) message += `• Font Style: ${customization.fontStyle}\n`;
+        if (customization.embroideryColor) message += `• Thread Color: ${customization.embroideryColor}\n`;
+        if (customization.giftWrap) {
+          message += `• Gift Wrapping: Yes 🎁\n`;
+          if (customization.giftMessage) message += `• Gift Card Message: "${customization.giftMessage}"\n`;
+        }
+        if (customization.specialNotes) message += `• Special Instructions: ${customization.specialNotes}\n`;
+      }
+      message += `\n💵 *Total Amount:* ₹${total.toFixed(2)}\n`;
+      message += `👤 *Customer:* ${currentUser.name} (${currentUser.email})\n\n`;
+      message += `Please let me know availability and production timeline.\nThank you! ✨`;
+
       const encoded = encodeURIComponent(message);
-      window.open(`https://wa.me/?text=${encoded}`, "_blank");
+      window.open(`https://wa.me/918590288151?text=${encoded}`, "_blank");
 
       showToast("Direct order initiated! WhatsApp chat opened and order saved.", "success");
       setActiveView("auth");

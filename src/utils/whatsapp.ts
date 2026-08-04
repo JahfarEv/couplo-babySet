@@ -61,6 +61,18 @@ export function buildWhatsAppOrderMessage(
 }
 
 /** Opens a pre-filled WhatsApp chat for ordering a single product. */
+// export function openWhatsAppOrder(
+//   product: Product,
+//   size?: string,
+//   color?: string,
+//   customization?: CustomizationDetails,
+// ) {
+//   const message = buildWhatsAppOrderMessage(product, size, color, customization);
+//   const encoded = encodeURIComponent(message);
+//   window.open(`https://api.whatsapp.com/send?phone=919539794665&text=${encoded}`);
+// }
+
+
 export function openWhatsAppOrder(
   product: Product,
   size?: string,
@@ -69,5 +81,13 @@ export function openWhatsAppOrder(
 ) {
   const message = buildWhatsAppOrderMessage(product, size, color, customization);
   const encoded = encodeURIComponent(message);
-  window.open(`https://wa.me/919539794665?text=${encoded}`, "_blank");
+  const phone = "919539794665"; // no +, no leading 0, country code + number
+
+  const url = `https://wa.me/${phone}?text=${encoded}`;
+
+  // window.open must be called synchronously inside the click handler,
+  // not after an await/async gap — otherwise browsers treat it as a
+  // popup and block it (which can also look like "nothing happened
+  // / generic app opened").
+  window.open(url, "_blank", "noopener,noreferrer");
 }
