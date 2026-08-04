@@ -37,6 +37,11 @@ export interface CartItem {
 export interface Customization {
   embroideredText?: string;
   babyName?: string;
+  size?: string;
+  romperName?: string;
+  capName?: string;
+  bow?: string;
+  designImageName?: string;
   fontStyle?: string;
   embroideryColor?: string;
   giftWrap?: boolean;

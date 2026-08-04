@@ -11,34 +11,52 @@ export function buildWhatsAppOrderMessage(
   const actualColor =
     color || (product.colors ? product.colors[0].name : "Default Theme");
 
-  let message = `Hi Couplo Baby Sets! 🌸 I would love to place a *customized order*:\n\n`;
+  let message = `Hi Couplo Baby Sets! ðŸŒ¸ I would love to place a *customized order*:\n\n`;
   message += `*Product:* ${product.name}\n`;
-  message += `• Price: ₹${product.price.toFixed(2)}\n`;
-  message += `• Size: ${actualSize}\n`;
-  message += `• Color: ${actualColor}\n`;
+  message += `â€¢ Price: â‚¹${product.price.toFixed(2)}\n`;
+  message += `â€¢ Size: ${actualSize}\n`;
+  message += `â€¢ Color: ${actualColor}\n`;
 
   if (customization) {
-    message += `\n✨ *Customization Details:*\n`;
+    message += `\nâœ¨ *Customization Details:*\n`;
+    if (customization.size) {
+      message += `- Size: ${customization.size}\n`;
+    }
+    if (customization.embroideryText) {
+      message += `- Embroidery Text: *${customization.embroideryText}*\n`;
+    }
+    if (customization.romperName) {
+      message += `- Name in Romper: *${customization.romperName}*\n`;
+    }
+    if (customization.capName) {
+      message += `- Name in Cap: *${customization.capName}*\n`;
+    }
+    if (customization.bow) {
+      message += `- Bow: ${customization.bow}\n`;
+    }
+    if (customization.designImageName) {
+      message += `- Design Image: ${customization.designImageName}\n`;
+    }
     if (customization.babyName) {
-      message += `• Baby's Name (to embroider): *${customization.babyName}*\n`;
+      message += `â€¢ Baby's Name (to embroider): *${customization.babyName}*\n`;
     }
     if (customization.babyAge) {
-      message += `• Baby's Age: ${customization.babyAge}\n`;
+      message += `â€¢ Baby's Age: ${customization.babyAge}\n`;
     }
-    message += `• Font Style: ${customization.fontStyle}\n`;
-    message += `• Thread Color: ${customization.embroideryColor}\n`;
+    message += `â€¢ Font Style: ${customization.fontStyle}\n`;
+    message += `â€¢ Thread Color: ${customization.embroideryColor}\n`;
     if (customization.giftWrap) {
-      message += `• Gift Wrapping: Yes 🎁\n`;
+      message += `â€¢ Gift Wrapping: Yes ðŸŽ\n`;
       if (customization.giftMessage) {
-        message += `• Gift Card Message: "${customization.giftMessage}"\n`;
+        message += `â€¢ Gift Card Message: "${customization.giftMessage}"\n`;
       }
     }
     if (customization.specialNotes) {
-      message += `• Special Instructions: ${customization.specialNotes}\n`;
+      message += `â€¢ Special Instructions: ${customization.specialNotes}\n`;
     }
   }
 
-  message += `\nPlease let me know availability and production timeline. Thank you! ✨`;
+  message += `\nPlease let me know availability and production timeline. Thank you! âœ¨`;
   return message;
 }
 
@@ -51,5 +69,5 @@ export function openWhatsAppOrder(
 ) {
   const message = buildWhatsAppOrderMessage(product, size, color, customization);
   const encoded = encodeURIComponent(message);
-  window.open(`https://wa.me/?text=${encoded}`, "_blank");
+  window.open(`https://wa.me/919539794665?text=${encoded}`, "_blank");
 }

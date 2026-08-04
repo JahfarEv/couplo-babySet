@@ -429,6 +429,26 @@ export default function CartDrawer({
                               Text: {item.customization.embroideredText}
                             </span>
                           )}
+                          {item.customization?.romperName && (
+                            <span className="bg-surface-container-low text-on-surface-variant text-[10px] px-2 py-0.5 rounded-md font-medium border border-primary/5">
+                              Romper: {item.customization.romperName}
+                            </span>
+                          )}
+                          {item.customization?.capName && (
+                            <span className="bg-surface-container-low text-on-surface-variant text-[10px] px-2 py-0.5 rounded-md font-medium border border-primary/5">
+                              Cap: {item.customization.capName}
+                            </span>
+                          )}
+                          {item.customization?.bow && (
+                            <span className="bg-surface-container-low text-on-surface-variant text-[10px] px-2 py-0.5 rounded-md font-medium border border-primary/5">
+                              Bow: {item.customization.bow}
+                            </span>
+                          )}
+                          {item.customization?.designImageName && (
+                            <span className="bg-surface-container-low text-on-surface-variant text-[10px] px-2 py-0.5 rounded-md font-medium border border-primary/5">
+                              Design: {item.customization.designImageName}
+                            </span>
+                          )}
                         </div>
                       </div>
 
