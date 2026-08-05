@@ -579,25 +579,6 @@ function StepBabyInfo({ product, customization, onChange }: StepProps) {
         </div>
       </div>
 
-      {/* Size */}
-      <div className="space-y-1.5">
-        <label className="text-[11px] uppercase tracking-wider font-bold text-outline">
-          Size
-        </label>
-        <select
-          id="custom-item-size"
-          value={customization.size}
-          onChange={(e) => onChange({ size: e.target.value })}
-          className="w-full border border-outline-variant rounded-xl px-4 py-3 text-sm text-on-surface bg-white focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-        >
-          <option value="">Select size</option>
-          {ITEM_SIZES.map((size) => (
-            <option key={size} value={size}>
-              {size}
-            </option>
-          ))}
-        </select>
-      </div>
 
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -716,6 +697,23 @@ function StepBabyInfo({ product, customization, onChange }: StepProps) {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Contact Number */}
+      <div className="space-y-1.5">
+        <label className="text-[11px] uppercase tracking-wider font-bold text-outline flex items-center gap-1.5">
+          📱 Customer WhatsApp Number
+        </label>
+        <input
+          id="custom-contact-number"
+          type="tel"
+          value={customization.contactNumber || ""}
+          onChange={(e) => onChange({ contactNumber: e.target.value })}
+          placeholder="e.g. +91 98765 43210"
+          maxLength={15}
+          className="w-full border border-outline-variant rounded-xl px-4 py-3 text-sm text-on-surface bg-white placeholder-outline focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+        />
+        <p className="text-[10px] text-on-surface-variant">We'll use this to send order updates via WhatsApp</p>
       </div>
 
       {/* Product preview */}
@@ -939,7 +937,6 @@ function StepReview({
   const embroideryText = customization.embroideryText || customization.babyName || "";
   
   const rows: { label: string; value: string }[] = [
-    { label: "Size", value: customization.size || selectedSize || "—" },
     { label: "Name in Romper", value: customization.romperName || "—" },
     { label: "Name in Cap", value: customization.capName || "—" },
     { label: "Bow", value: customization.bow || "—" },
@@ -955,6 +952,9 @@ function StepReview({
     { label: "Quantity", value: String(quantity) },
     ...(customization.specialNotes
       ? [{ label: "Special Notes", value: customization.specialNotes }]
+      : []),
+    ...(customization.contactNumber
+      ? [{ label: "WhatsApp No.", value: customization.contactNumber }]
       : []),
   ];
 

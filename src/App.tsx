@@ -1,4 +1,4 @@
-﻿import { useMemo, useRef, useState, useEffect } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import { CategoryFilter, Product, User, CartItem } from "./types";
 import { useUserProducts } from "./hooks/useProducts"; // ✅ Import the hook
 import { useCategories } from "./hooks/useCategories";
@@ -244,6 +244,7 @@ export default function App() {
       const c = item.customization;
       if (c) {
         message += `\n✨ *Customization Details*\n`;
+        if (c.contactNumber) message += `• Customer WhatsApp: *${c.contactNumber}*\n`;
         if (c.babyName) message += `• Baby's Name: ${c.babyName}\n`;
         if (c.babyAge) message += `• Baby's Age: ${c.babyAge}\n`;
         if (c.romperName) message += `• Name in Romper: ${c.romperName}\n`;
@@ -251,8 +252,6 @@ export default function App() {
         if (c.bow) message += `• Bow: ${c.bow}\n`;
         if (c.designImageName) message += `• Design Image: ${c.designImageName}\n`;
         if (c.embroideryText || c.embroideredText) message += `• Embroidery Text: ${c.embroideryText || c.embroideredText}\n`;
-        if (c.fontStyle) message += `• Font Style: ${c.fontStyle}\n`;
-        if (c.embroideryColor) message += `• Thread Color: ${c.embroideryColor}\n`;
         if (c.giftWrap) {
           message += `• Gift Wrapping: Yes 🎁\n`;
           if (c.giftMessage) message += `• Gift Card Message: "${c.giftMessage}"\n`;
@@ -363,6 +362,7 @@ console.log("⏳ Loading state:", productsLoading);
       if (selectedColor) message += `🎨 *Color:* ${selectedColor}\n`;
       if (customization) {
         message += `\n✨ *Customization Details*\n`;
+        if (customization.contactNumber) message += `• Customer WhatsApp: *${customization.contactNumber}*\n`;
         if (customization.babyName) message += `• Baby's Name: ${customization.babyName}\n`;
         if (customization.babyAge) message += `• Baby's Age: ${customization.babyAge}\n`;
         if (customization.romperName) message += `• Name in Romper: ${customization.romperName}\n`;
@@ -370,8 +370,6 @@ console.log("⏳ Loading state:", productsLoading);
         if (customization.bow) message += `• Bow: ${customization.bow}\n`;
         if (customization.designImageName) message += `• Design Image: ${customization.designImageName}\n`;
         if (customization.embroideryText || (customization as any).embroideredText) message += `• Embroidery Text: ${customization.embroideryText || (customization as any).embroideredText}\n`;
-        if (customization.fontStyle) message += `• Font Style: ${customization.fontStyle}\n`;
-        if (customization.embroideryColor) message += `• Thread Color: ${customization.embroideryColor}\n`;
         if (customization.giftWrap) {
           message += `• Gift Wrapping: Yes 🎁\n`;
           if (customization.giftMessage) message += `• Gift Card Message: "${customization.giftMessage}"\n`;

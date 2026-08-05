@@ -32,6 +32,7 @@ export default function Header({
 }: HeaderProps) {
   const { categories, loading } = useCategories();
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+console.log(categories, 'category');
 
   // Get categories for navigation (exclude "all")
   const navCategories = categories.filter((cat) => cat.value !== "all");

@@ -18,9 +18,9 @@ export function buildWhatsAppOrderMessage(
   message += `â€¢ Color: ${actualColor}\n`;
 
   if (customization) {
-    message += `\nâœ¨ *Customization Details:*\n`;
-    if (customization.size) {
-      message += `- Size: ${customization.size}\n`;
+    message += `\n✨ *Customization Details:*\n`;
+    if (customization.contactNumber) {
+      message += `• Customer WhatsApp: *${customization.contactNumber}*\n`;
     }
     if (customization.embroideryText) {
       message += `- Embroidery Text: *${customization.embroideryText}*\n`;
@@ -38,21 +38,19 @@ export function buildWhatsAppOrderMessage(
       message += `- Design Image: ${customization.designImageName}\n`;
     }
     if (customization.babyName) {
-      message += `â€¢ Baby's Name (to embroider): *${customization.babyName}*\n`;
+      message += `• Baby's Name (to embroider): *${customization.babyName}*\n`;
     }
     if (customization.babyAge) {
-      message += `â€¢ Baby's Age: ${customization.babyAge}\n`;
+      message += `• Baby's Age: ${customization.babyAge}\n`;
     }
-    message += `â€¢ Font Style: ${customization.fontStyle}\n`;
-    message += `â€¢ Thread Color: ${customization.embroideryColor}\n`;
     if (customization.giftWrap) {
-      message += `â€¢ Gift Wrapping: Yes ðŸŽ\n`;
+      message += `• Gift Wrapping: Yes 🎁\n`;
       if (customization.giftMessage) {
-        message += `â€¢ Gift Card Message: "${customization.giftMessage}"\n`;
+        message += `• Gift Card Message: "${customization.giftMessage}"\n`;
       }
     }
     if (customization.specialNotes) {
-      message += `â€¢ Special Instructions: ${customization.specialNotes}\n`;
+      message += `• Special Instructions: ${customization.specialNotes}\n`;
     }
   }
 
