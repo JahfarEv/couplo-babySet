@@ -250,7 +250,10 @@ export default function App() {
         if (c.romperName) message += `• Name in Romper: ${c.romperName}\n`;
         if (c.capName) message += `• Name in Cap: ${c.capName}\n`;
         if (c.bow) message += `• Bow: ${c.bow}\n`;
-        if (c.designImageName) message += `• Design Image: ${c.designImageName}\n`;
+        if (c.designImageName) {
+          message += `• Design Image: ${c.designImageName}\n`;
+          if (c.designImageUrl) message += `  🔗 Link: ${c.designImageUrl}\n`;
+        }
         if (c.embroideryText || c.embroideredText) message += `• Embroidery Text: ${c.embroideryText || c.embroideredText}\n`;
         if (c.giftWrap) {
           message += `• Gift Wrapping: Yes 🎁\n`;
@@ -368,7 +371,10 @@ console.log("⏳ Loading state:", productsLoading);
         if (customization.romperName) message += `• Name in Romper: ${customization.romperName}\n`;
         if (customization.capName) message += `• Name in Cap: ${customization.capName}\n`;
         if (customization.bow) message += `• Bow: ${customization.bow}\n`;
-        if (customization.designImageName) message += `• Design Image: ${customization.designImageName}\n`;
+        if (customization.designImageName) {
+          message += `• Design Image: ${customization.designImageName}\n`;
+          if (customization.designImageUrl) message += `  🔗 Link: ${customization.designImageUrl}\n`;
+        }
         if (customization.embroideryText || (customization as any).embroideredText) message += `• Embroidery Text: ${customization.embroideryText || (customization as any).embroideredText}\n`;
         if (customization.giftWrap) {
           message += `• Gift Wrapping: Yes 🎁\n`;

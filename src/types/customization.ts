@@ -7,6 +7,7 @@ export interface CustomizationDetails {
   capName: string;
   bow: string;
   designImageName: string;
+  designImageUrl: string;
   fontStyle: string;
   embroideryColor: string;
   giftWrap: boolean;
@@ -23,6 +24,7 @@ export const EMPTY_CUSTOMIZATION: CustomizationDetails = {
   capName: "",
   bow: "",
   designImageName: "",
+  designImageUrl: "",
   fontStyle: "Classic Script",
   embroideryColor: "Dusty Rose",
   giftWrap: false,

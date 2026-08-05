@@ -36,6 +36,7 @@ export function buildWhatsAppOrderMessage(
     }
     if (customization.designImageName) {
       message += `- Design Image: ${customization.designImageName}\n`;
+      if (customization.designImageUrl) message += `  🔗 Link: ${customization.designImageUrl}\n`;
     }
     if (customization.babyName) {
       message += `• Baby's Name (to embroider): *${customization.babyName}*\n`;

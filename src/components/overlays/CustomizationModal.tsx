@@ -531,9 +531,11 @@ import {
   Type,
   Upload,
   Info,
+  Loader2,
 } from "lucide-react";
 import { Product } from "../../types";
 import { CustomizationDetails } from "../../types/customization";
+import { uploadToCloudinary } from "../../utils/cloudinary";
 
 const FONT_STYLES = [
   { id: "Classic Script", preview: "𝒞𝓁𝒶𝓈𝓈𝒾𝒸", desc: "Elegant cursive" },
@@ -567,6 +569,8 @@ const BOW_OPTIONS = ["No Bow", "Yes - Matching Bow", "Yes - Contrast Bow"];
 
 /* ─── Step 1: Baby Info ─────────────────────────────────────────────────── */
 function StepBabyInfo({ product, customization, onChange }: StepProps) {
+  const [isUploading, setIsUploading] = useState(false);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3 mb-2">
@@ -652,11 +656,15 @@ function StepBabyInfo({ product, customization, onChange }: StepProps) {
         </label>
         <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-outline-variant bg-white px-4 py-4 text-sm text-on-surface transition-all hover:border-primary/60">
           <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-primary-container text-primary">
-            <Upload className="h-5 w-5" />
+            {isUploading ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <Upload className="h-5 w-5" />
+            )}
           </span>
           <span className="min-w-0 flex-1">
             <span className="block font-semibold">
-              {customization.designImageName || "Upload design image"}
+              {isUploading ? "Uploading..." : customization.designImageName || "Upload design image"}
             </span>
             <span className="block truncate text-xs text-on-surface-variant">
               JPG, PNG, or WEBP reference for your custom design
@@ -667,9 +675,21 @@ function StepBabyInfo({ product, customization, onChange }: StepProps) {
             type="file"
             accept="image/png,image/jpeg,image/webp"
             className="sr-only"
-            onChange={(e) => {
+            disabled={isUploading}
+            onChange={async (e) => {
               const file = e.target.files?.[0];
-              onChange({ designImageName: file?.name || "" });
+              if (file) {
+                setIsUploading(true);
+                try {
+                  const url = await uploadToCloudinary(file);
+                  onChange({ designImageName: file.name, designImageUrl: url });
+                } catch (error) {
+                  console.error("Upload failed", error);
+                  alert("Failed to upload image. Please try again.");
+                } finally {
+                  setIsUploading(false);
+                }
+              }
             }}
           />
         </label>
