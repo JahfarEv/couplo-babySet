@@ -577,51 +577,72 @@ const CuratedCollections = forwardRef<HTMLDivElement, CuratedCollectionsProps>(
                       🧸
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-inverse-surface/62 via-primary/10 to-transparent" />
-                  <div className="absolute bottom-6 left-6 right-6">
-                    <h3 className="text-2xl md:text-3xl font-serif text-white font-black text-on-primary">
-                      {category.label}
-                    </h3>
-                    {category.extraCopy && (
-                      <span className="text-xs text-primary-fixed-dim font-bold flex items-center group-hover:text-white transition-colors mt-2">
-                        {category.extraCopy}
-                        <ArrowRight className="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" />
-                      </span>
-                    )}
-                  </div>
+                 <div className="absolute inset-0 bg-gradient-to-t from-inverse-surface/62 via-primary/10 to-transparent" />
+<div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/70 via-black/30 to-transparent backdrop-blur-[3px]">
+  <div className="max-w-2xl">
+    <h3 className="text-2xl md:text-3xl font-serif text-white font-black drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
+      {category.label}
+    </h3>
+    {category.extraCopy && (
+      <span className="text-xs text-primary-fixed-dim font-bold flex items-center group-hover:text-white transition-colors mt-2 drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)]">
+        {category.extraCopy}
+        <ArrowRight className="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" />
+      </span>
+    )}
+  </div>
+</div>
                 </div>
               ))
             )}
 
             {/* WhatsApp Channel Card */}
-            <div
-              onClick={() =>
-                window.open(
-                  "https://whatsapp.com/channel/0029VbDWjLXAO7RN0fAEt91F",
-                  "_blank",
-                )
-              }
-              className="group relative rounded-[1.75rem] overflow-hidden shadow-[0_18px_45px_rgba(216,111,146,0.12)] cursor-pointer block select-none transition-all hover:-translate-y-1"
-            >
-              <img
-                alt="Join our WhatsApp Channel"
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-103 opacity-95"
-                src="/babyset/more.jpg"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-inverse-surface/62 via-primary/10 to-transparent" />
-              <div className="absolute bottom-4 left-4 right-4">
-                <h3 className="text-md sm:text-lg font-serif font-bold text-white">
-                  More Collections
-                </h3>
-                <p className="text-xs text-white/80 mt-1">
-                  Latest arrivals & offers
-                </p>
-              </div>
-            </div>
-
+          <div
+  onClick={() =>
+    window.open(
+      "https://whatsapp.com/channel/0029VbDWjLXAO7RN0fAEt91F",
+      "_blank",
+    )
+  }
+  className="group relative rounded-[1.75rem] overflow-hidden shadow-[0_18px_45px_rgba(216,111,146,0.12)] cursor-pointer block select-none transition-all hover:-translate-y-1 hover:shadow-[0_25px_60px_rgba(216,111,146,0.2)]"
+>
+  <img
+    alt="Join our WhatsApp Channel"
+    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+    src="/babyset/more.png"
+    onError={(e) => {
+      (e.target as HTMLImageElement).style.display = 'none';
+    }}
+  />
+  
+  {/* Image blur overlay */}
+  <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px] group-hover:backdrop-blur-[1px] transition-all duration-500" />
+  
+  {/* Gradient overlay */}
+  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+  
+  {/* Text content */}
+  <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
+    <div className="transform transition-transform duration-500 group-hover:translate-y-[-4px]">
+      <h3 className="text-xl sm:text-2xl lg:text-3xl font-serif font-bold text-white mb-2 drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)] tracking-wide">
+        More Designs
+      </h3>
+      <p className="text-sm sm:text-base text-white/90 font-light leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)] max-w-md">
+        Discover beautiful designs for every special occasion
+      </p>
+      
+      {/* Decorative line */}
+      <div className="mt-4 w-12 h-0.5 bg-gradient-to-r from-white to-transparent rounded-full transition-all duration-500 group-hover:w-20" />
+      
+      {/* Optional: CTA button */}
+      <button className="mt-4 px-6 py-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full text-white text-sm font-medium hover:bg-white/30 transition-all duration-300 hover:scale-105 flex items-center gap-2">
+        <span>Explore Now</span>
+        <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
             {/* View All Categories Card */}
             <div
               onClick={() => setShowAllCategories((current) => !current)}
@@ -629,7 +650,7 @@ const CuratedCollections = forwardRef<HTMLDivElement, CuratedCollectionsProps>(
             >
               <div className="absolute inset-0 bg-gradient-to-br from-secondary-container via-white to-tertiary-container flex flex-col items-center justify-center text-center p-4 transition-all group-hover:from-primary-container">
                 <Grid className="w-8 h-8 text-secondary mb-2" />
-                <h3 className="text-xs sm:text-sm font-semibold font-serif text-on-surface">
+                <h3 className="text-xs sm:text-sm font-semibold font-serif text-on-surface ">
                   {showAllCategories ? "Show Fewer Categories" : "View All Categories"}
                 </h3>
                 <p className="text-[10px] text-on-surface-variant mt-1">

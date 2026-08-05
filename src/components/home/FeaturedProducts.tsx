@@ -59,8 +59,7 @@ const FeaturedProducts = forwardRef<HTMLDivElement, FeaturedProductsProps>(
                 Soft Picks for Little Smiles
               </h2>
               <p className="text-xs md:text-sm text-on-surface-variant font-medium">
-                Handpicked baby outfits crafted with comfort, cuteness, and
-                easy everyday wear in mind.
+               Crafted with premium comfort and personalized elegance for your little one's special moments.
               </p>
             </div>
 

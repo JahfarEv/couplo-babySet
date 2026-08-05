@@ -112,6 +112,14 @@ console.log(categories, 'category');
               </button>
             ))
           )}
+
+          {/* More Designs Button */}
+          <button
+            onClick={() => window.open("https://whatsapp.com/channel/0029VbDWjLXAO7RN0fAEt91F", "_blank")}
+            className="text-sm font-semibold text-on-surface-variant hover:text-primary hover:underline underline-offset-4 decoration-primary/20 transition-all cursor-pointer bg-transparent border-none p-0"
+          >
+            More Designs
+          </button>
         </nav>
 
         <div className="flex items-center text-primary gap-4">
