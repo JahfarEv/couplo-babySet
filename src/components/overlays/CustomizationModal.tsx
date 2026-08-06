@@ -570,6 +570,7 @@ const BOW_OPTIONS = ["No Bow", "Yes - Matching Bow", "Yes - Contrast Bow"];
 /* ─── Step 1: Baby Info ─────────────────────────────────────────────────── */
 function StepBabyInfo({ product, customization, onChange }: StepProps) {
   const [isUploading, setIsUploading] = useState(false);
+const [showBowInfo, setShowBowInfo] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -618,7 +619,7 @@ function StepBabyInfo({ product, customization, onChange }: StepProps) {
       </div>
 
       {/* Bow */}
-      <div className="space-y-1.5">
+      {/* <div className="space-y-1.5">
         <label className="text-[11px] uppercase tracking-wider font-bold text-outline flex items-center gap-1.5">
           Bow
           <div className="relative group flex items-center">
@@ -647,7 +648,57 @@ function StepBabyInfo({ product, customization, onChange }: StepProps) {
           placeholder="e.g. Gold - Cap & Neck"
           className="w-full border border-outline-variant rounded-xl px-4 py-3 text-sm text-on-surface bg-white placeholder-outline focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
         />
-      </div>
+      </div> */}
+
+
+      <div className="space-y-1.5">
+  <label className="text-[11px] uppercase tracking-wider font-bold text-outline flex items-center gap-1.5">
+    Bow
+    <div className="relative flex items-center">
+      <Info 
+        className="w-3.5 h-3.5 text-on-surface-variant cursor-pointer md:cursor-help" 
+        onClick={() => setShowBowInfo(!showBowInfo)}
+        onMouseEnter={() => setShowBowInfo(true)}
+        onMouseLeave={() => setShowBowInfo(false)}
+      />
+      {/* Tooltip - clickable on mobile */}
+      {(showBowInfo) && (
+        <div className="absolute left-1/2 -translate-x-1/2 top-full mb-2 
+                        w-[280px] max-w-[90vw] p-3 bg-[#1e1e1e] text-white text-[10px] rounded-xl shadow-lg z-[100] 
+                        md:left-0 md:translate-x-0">
+          <p className="font-bold mb-1">Available Colours:</p>
+          <p className="mb-2 text-white/80">Gold, Blue, Navy Blue, Royal Blue, Pepsi Blue, Pink, Rani Pink, Onion Pink, Muddy Pink, Red, Yellow, Purple, Maroon, Dark Green, Beige, Brown & Black.</p>
+          <p className="font-bold mb-1">Available Placements:</p>
+          <p className="mb-2 text-white/80">Cap, Neck, Both Hand Socks, Both Boots.</p>
+          <p className="font-bold mb-1">Example:</p>
+          <ul className="list-disc pl-4 text-white/80 space-y-0.5">
+            <li>Gold – Cap & Neck</li>
+            <li>Pink – Both Boots</li>
+            <li>Red – Hand Socks</li>
+            <li>Royal Blue – Full Bow Set</li>
+          </ul>
+          <div className="absolute left-1/2 md:left-1.5 -bottom-1 w-2 h-2 bg-[#1e1e1e] rotate-45 
+                          md:translate-x-0 -translate-x-1/2" />
+          {/* Close button for mobile */}
+          <button 
+            className="md:hidden absolute top-2 right-2 text-white/60 hover:text-white"
+            onClick={() => setShowBowInfo(false)}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+    </div>
+  </label>
+  <input
+    id="custom-bow"
+    type="text"
+    value={customization.bow || ""}
+    onChange={(e) => onChange({ bow: e.target.value })}
+    placeholder="e.g. Gold - Cap & Neck"
+    className="w-full border border-outline-variant rounded-xl px-4 py-3 text-sm text-on-surface bg-white placeholder-outline focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+  />
+</div>
 
       {/* Design image */}
       <div className="space-y-1.5">

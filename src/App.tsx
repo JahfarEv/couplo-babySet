@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, useEffect } from "react";
+﻿import { useMemo, useRef, useState, useEffect } from "react";
 import { CategoryFilter, Product, User, CartItem } from "./types";
 import { useUserProducts } from "./hooks/useProducts"; // ✅ Import the hook
 import { useCategories } from "./hooks/useCategories";
@@ -160,11 +160,11 @@ export default function App() {
     color?: string,
     customization?: CustomizationDetails,
   ) => {
-    if (!currentUser) {
-      showToast("Please sign in to add items to your cart", "info");
-      setActiveView("auth");
-      return;
-    }
+   if (!currentUser) {
+  showToast("You're not registered yet. Please create an account or log in if you already have one", "info");
+  setActiveView("auth");
+  return;
+}
 
     const actualSize = size;
     const actualColor = color;
@@ -309,7 +309,7 @@ console.log("⏳ Loading state:", productsLoading);
 
   const handleOrder = (product: Product, quantity = 1, size?: string, color?: string) => {
     if (!currentUser) {
-      showToast("Please sign in to place a direct order", "info");
+  showToast("You're not registered yet. Please create an account or log in if you already have one", "info");
       setProductToShowAfterLogin(product);
       setActiveView("auth");
       return;
@@ -325,7 +325,7 @@ console.log("⏳ Loading state:", productsLoading);
     color?: string,
   ) => {
     if (!currentUser) {
-      showToast("Please sign in to add items to your cart", "info");
+      showToast("You're not registered yet. Please create an account or log in if you already have one", "info");
       setProductToShowAfterLogin(product);
       setActiveView("auth");
       return;
@@ -477,7 +477,10 @@ console.log("⏳ Loading state:", productsLoading);
             onLogin={handleLogin}
             onLogout={handleLogout}
             onShowToast={showToast}
-            onBackToHome={() => setActiveView("home")}
+            onBackToHome={() => {
+              setActiveView("home");
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
           />
         ) : (
           <>
@@ -513,14 +516,24 @@ console.log("⏳ Loading state:", productsLoading);
         )}
       </main>
 
-      <Footer
+      {/* <Footer
         onCategoryClick={(cat) => {
           setActiveView("home");
           handleCategoryBlockClick(cat);
         }}
         categories={categories}
         categoriesLoading={categoriesLoading}
-      />
+      /> */}
+      {activeView !== "auth" && (
+  <Footer
+    onCategoryClick={(cat) => {
+      setActiveView("home");
+      handleCategoryBlockClick(cat);
+    }}
+    categories={categories}
+    categoriesLoading={categoriesLoading}
+  />
+)}
 
       <ScrollToTopButton visible={showScrollTop} />
     </div>
