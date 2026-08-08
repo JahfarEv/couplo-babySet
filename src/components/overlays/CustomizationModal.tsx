@@ -657,15 +657,26 @@ const [showBowInfo, setShowBowInfo] = useState(false);
     <div className="relative flex items-center">
       <Info 
         className="w-3.5 h-3.5 text-on-surface-variant cursor-pointer md:cursor-help" 
-        onClick={() => setShowBowInfo(!showBowInfo)}
-        onMouseEnter={() => setShowBowInfo(true)}
-        onMouseLeave={() => setShowBowInfo(false)}
+        onClick={() => {
+          if (window.innerWidth < 768) {
+            setShowBowInfo(!showBowInfo);
+          }
+        }}
+        onMouseEnter={() => {
+          if (window.innerWidth >= 768) {
+            setShowBowInfo(true);
+          }
+        }}
+        onMouseLeave={() => {
+          if (window.innerWidth >= 768) {
+            setShowBowInfo(false);
+          }
+        }}
       />
-      {/* Tooltip - clickable on mobile */}
+      {/* Tooltip - Desktop only (floating above) */}
       {(showBowInfo) && (
-        <div className="absolute left-1/2 -translate-x-1/2 top-full mb-2 
-                        w-[280px] max-w-[90vw] p-3 bg-[#1e1e1e] text-white text-[10px] rounded-xl shadow-lg z-[100] 
-                        md:left-0 md:translate-x-0">
+        <div className="hidden md:block absolute left-0 top-full mb-2 
+                        w-72 p-3 bg-[#1e1e1e] text-white text-[10px] rounded-xl shadow-lg z-[100] pointer-events-none">
           <p className="font-bold mb-1">Available Colours:</p>
           <p className="mb-2 text-white/80">Gold, Blue, Navy Blue, Royal Blue, Pepsi Blue, Pink, Rani Pink, Onion Pink, Muddy Pink, Red, Yellow, Purple, Maroon, Dark Green, Beige, Brown & Black.</p>
           <p className="font-bold mb-1">Available Placements:</p>
@@ -677,19 +688,39 @@ const [showBowInfo, setShowBowInfo] = useState(false);
             <li>Red – Hand Socks</li>
             <li>Royal Blue – Full Bow Set</li>
           </ul>
-          <div className="absolute left-1/2 md:left-1.5 -bottom-1 w-2 h-2 bg-[#1e1e1e] rotate-45 
-                          md:translate-x-0 -translate-x-1/2" />
-          {/* Close button for mobile */}
-          <button 
-            className="md:hidden absolute top-2 right-2 text-white/60 hover:text-white"
-            onClick={() => setShowBowInfo(false)}
-          >
-            ✕
-          </button>
+          <div className="absolute left-1.5 -bottom-1 w-2 h-2 bg-[#1e1e1e] rotate-45" />
         </div>
       )}
     </div>
   </label>
+
+  {/* Tooltip - Mobile only (inline in-flow container to prevent clipping in overflow-y-auto modal) */}
+  {showBowInfo && (
+    <div className="block md:hidden relative p-3.5 bg-surface-container border border-outline-variant/30 text-on-surface text-[11px] rounded-xl shadow-sm z-10 transition-all">
+      <p className="font-bold mb-1 text-primary">Available Colours:</p>
+      <p className="mb-2 text-on-surface-variant leading-relaxed">Gold, Blue, Navy Blue, Royal Blue, Pepsi Blue, Pink, Rani Pink, Onion Pink, Muddy Pink, Red, Yellow, Purple, Maroon, Dark Green, Beige, Brown & Black.</p>
+      <p className="font-bold mb-1 text-primary">Available Placements:</p>
+      <p className="mb-2 text-on-surface-variant leading-relaxed">Cap, Neck, Both Hand Socks, Both Boots.</p>
+      <p className="font-bold mb-1 text-primary">Example:</p>
+      <ul className="list-disc pl-4 text-on-surface-variant space-y-1">
+        <li>Gold – Cap & Neck</li>
+        <li>Pink – Both Boots</li>
+        <li>Red – Hand Socks</li>
+        <li>Royal Blue – Full Bow Set</li>
+      </ul>
+      {/* Close button for mobile */}
+      <button 
+        className="absolute top-2.5 right-2.5 text-on-surface-variant hover:text-on-surface p-1 rounded-full hover:bg-surface-container-high transition-all"
+        onClick={(e) => {
+          e.stopPropagation();
+          setShowBowInfo(false);
+        }}
+      >
+        ✕
+      </button>
+    </div>
+  )}
+
   <input
     id="custom-bow"
     type="text"
