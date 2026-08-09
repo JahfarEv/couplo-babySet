@@ -42,6 +42,7 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [activeView, setActiveView] = useState<"home" | "auth">("home");
   const [productToShowAfterLogin, setProductToShowAfterLogin] = useState<Product | null>(null);
+  const [pendingScrollTarget, setPendingScrollTarget] = useState<"featured" | "collections" | null>(null);
 
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
@@ -57,6 +58,20 @@ export default function App() {
 
   const featuredSectionRef = useRef<HTMLDivElement>(null);
   const collectionsSectionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (activeView !== "home" || !pendingScrollTarget) return;
+
+    const targetRef =
+      pendingScrollTarget === "featured"
+        ? featuredSectionRef
+        : collectionsSectionRef;
+
+    requestAnimationFrame(() => {
+      scrollToSection(targetRef);
+      setPendingScrollTarget(null);
+    });
+  }, [activeView, pendingScrollTarget]);
 
   // Keep user session synchronized with Firebase Authentication.
   useEffect(() => {
@@ -304,7 +319,12 @@ console.log("⏳ Loading state:", productsLoading);
 
   const handleCategoryBlockClick = (cat: CategoryFilter) => {
     setCategoryFilter(cat);
-    scrollToSection(featuredSectionRef);
+    if (activeView === "home") {
+      scrollToSection(featuredSectionRef);
+    } else {
+      setActiveView("home");
+      setPendingScrollTarget("featured");
+    }
   };
 
   const handleOrder = (product: Product, quantity = 1, size?: string, color?: string) => {
@@ -448,7 +468,6 @@ console.log("⏳ Loading state:", productsLoading);
         onCloseMobileMenu={() => setMobileMenuOpen(false)}
         onOpenSearch={() => setSearchOpen(true)}
         onCategoryClick={(cat) => {
-          setActiveView("home");
           handleCategoryBlockClick(cat);
         }}
         activeView={activeView}
@@ -518,7 +537,6 @@ console.log("⏳ Loading state:", productsLoading);
 
       {/* <Footer
         onCategoryClick={(cat) => {
-          setActiveView("home");
           handleCategoryBlockClick(cat);
         }}
         categories={categories}
@@ -527,7 +545,6 @@ console.log("⏳ Loading state:", productsLoading);
       {activeView !== "auth" && (
   <Footer
     onCategoryClick={(cat) => {
-      setActiveView("home");
       handleCategoryBlockClick(cat);
     }}
     categories={categories}
