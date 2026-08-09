@@ -231,7 +231,7 @@ export default function App() {
       return;
     }
 
-    const orderId = savedOrder.id || savedOrder.orderId || "N/A";
+    const orderId = savedOrder.orderId || savedOrder.id || "N/A";
 
     // Build the formatted WhatsApp message with the real order ID
     let message = `Hi Couplo Baby Sets! 🌸\n\n`;
@@ -354,7 +354,7 @@ console.log("⏳ Loading state:", productsLoading);
         return;
       }
 
-      const orderId = savedOrder.id || savedOrder.orderId || "N/A";
+      const orderId = savedOrder.orderId || savedOrder.id || "N/A";
 
       // Build the formatted WhatsApp message with the real Firebase order ID
       let message = `Hi Couplo Baby Sets! 🌸\n\n`;

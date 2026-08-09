@@ -631,7 +631,7 @@
 
 
 
-import { doc, setDoc, getDoc, deleteDoc, collection, addDoc, query, where, getDocs, orderBy } from "firebase/firestore";
+import { doc, setDoc, getDoc, deleteDoc, collection, addDoc, query, where, getDocs, orderBy, runTransaction } from "firebase/firestore";
 import { db } from "../firebase";
 import { CartItem, User } from "../types";
 
@@ -678,6 +678,57 @@ const getEmbroideryText = (customization: any): string | undefined => {
   return nullToUndefined(customization.embroideredText || customization.babyName);
 };
 
+const formatWebOrderId = (orderNumber: number): string => {
+  return `web-${String(orderNumber).padStart(4, "0")}`;
+};
+
+const getNextWebOrderId = async (): Promise<string> => {
+  const counterRef = doc(db, "counters", "orders");
+
+  return runTransaction(db, async (transaction) => {
+    const counterSnap = await transaction.get(counterRef);
+    const lastOrderNumber = counterSnap.exists()
+      ? Number(counterSnap.data().lastWebOrderNumber || 0)
+      : 0;
+    const nextOrderNumber = lastOrderNumber + 1;
+
+    transaction.set(
+      counterRef,
+      {
+        lastWebOrderNumber: nextOrderNumber,
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true },
+    );
+
+    return formatWebOrderId(nextOrderNumber);
+  });
+};
+
+const getFallbackWebOrderId = (): string => {
+  const storageKey = "couplo_web_order_counter";
+  const lastOrderNumber =
+    typeof window !== "undefined"
+      ? Number(window.localStorage.getItem(storageKey) || 0)
+      : 0;
+  const nextOrderNumber = lastOrderNumber + 1;
+
+  if (typeof window !== "undefined") {
+    window.localStorage.setItem(storageKey, String(nextOrderNumber));
+  }
+
+  return formatWebOrderId(nextOrderNumber);
+};
+
+const getSafeWebOrderId = async (): Promise<string> => {
+  try {
+    return await getNextWebOrderId();
+  } catch (error) {
+    console.warn("Unable to update Firestore order counter. Using local fallback order id:", error);
+    return getFallbackWebOrderId();
+  }
+};
+
 export const orderService = {
   // Create a new order from cart
   createOrder: async (user: User, cart: CartItem[], whatsappMessage: string, saveLocalStorage = true): Promise<Order | null> => {
@@ -697,6 +748,7 @@ export const orderService = {
       const subtotal = cart.reduce((sum, item) => sum + (item.product?.price || 0) * item.quantity, 0);
       const now = new Date();
       const formattedDate = now.toLocaleDateString("en-US", { month: "long", year: "numeric", day: "numeric" });
+      const orderId = await getSafeWebOrderId();
 
       const firstItem = cart[0];
       const customization = firstItem?.customization;
@@ -722,6 +774,7 @@ export const orderService = {
       }));
 
       const rawOrderData = {
+        orderId: orderId,
         userId: user.id,
         userEmail: user.email || '',
         userName: user.name || '',
@@ -748,28 +801,20 @@ export const orderService = {
       };
 
       const orderData = cleanForFirestore(rawOrderData);
-      let docId = `CB-${Math.floor(1000 + Math.random() * 9000)}`;
+      let docId = orderId;
 
       // Save to Firestore
       try {
         const docRef = await addDoc(collection(db, "orders"), orderData);
         docId = docRef.id;
         console.log("✅ Order created in Firestore with ID:", docId);
-
-        try {
-          const userOrderRef = doc(db, "users", user.id, "orders", docId);
-          await setDoc(userOrderRef, cleanForFirestore({ ...orderData, id: docId, orderId: docId }));
-          console.log("✅ Order saved to user subcollection");
-        } catch (subErr) {
-          console.warn("⚠️ Failed to save to user subcollection:", subErr);
-        }
       } catch (fsErr) {
         console.warn("⚠️ Firestore addDoc failed, using local order fallback:", fsErr);
       }
 
       const completeOrder: Order = {
         id: docId,
-        orderId: docId,
+        orderId: orderId,
         ...rawOrderData,
         status: rawOrderData.status,
       };
@@ -798,6 +843,7 @@ export const orderService = {
       const total = (product.price || 0) * quantity;
       const now = new Date();
       const formattedDate = now.toLocaleDateString("en-US", { month: "long", year: "numeric", day: "numeric" });
+      const orderId = await getSafeWebOrderId();
 
       const embroideryText = getEmbroideryText(customization);
       const babyName = nullToUndefined(customization?.babyName);
@@ -826,6 +872,7 @@ export const orderService = {
       };
 
       const rawOrderData = {
+        orderId: orderId,
         userId: user.id,
         userEmail: user.email || '',
         userName: user.name || '',
@@ -852,28 +899,20 @@ export const orderService = {
       };
 
       const orderData = cleanForFirestore(rawOrderData);
-      let docId = `CB-${Math.floor(1000 + Math.random() * 9000)}`;
+      let docId = orderId;
 
       // Save to Firestore
       try {
         const docRef = await addDoc(collection(db, "orders"), orderData);
         docId = docRef.id;
         console.log("✅ Single order created in Firestore with ID:", docId);
-
-        try {
-          const userOrderRef = doc(db, "users", user.id, "orders", docId);
-          await setDoc(userOrderRef, cleanForFirestore({ ...orderData, id: docId, orderId: docId }));
-          console.log("✅ Single order saved to user subcollection");
-        } catch (subErr) {
-          console.warn("⚠️ Failed to save to user subcollection:", subErr);
-        }
       } catch (fsErr) {
         console.warn("⚠️ Firestore addDoc failed for single order:", fsErr);
       }
 
       const completeOrder: Order = {
         id: docId,
-        orderId: docId,
+        orderId: orderId,
         ...rawOrderData,
         status: rawOrderData.status,
       };
@@ -930,25 +969,6 @@ export const orderService = {
           });
         } catch (err2) {
           console.warn("⚠️ Firestore plain query failed:", err2);
-        }
-      }
-
-      // 2. Query user subcollection if root orders is empty
-      if (firestoreOrders.length === 0) {
-        try {
-          const userOrdersRef = collection(db, "users", userId, "orders");
-          const querySnapshot = await getDocs(userOrdersRef);
-          firestoreOrders = querySnapshot.docs.map((doc) => {
-            const data = doc.data();
-            return {
-              id: doc.id,
-              orderId: doc.id,
-              ...data,
-              status: data.status as Order['status'],
-            } as Order;
-          });
-        } catch (subErr) {
-          console.warn("⚠️ User subcollection query failed:", subErr);
         }
       }
 
@@ -1032,3 +1052,4 @@ export const orderService = {
     }
   }
 };
+

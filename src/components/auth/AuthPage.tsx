@@ -1108,6 +1108,9 @@ import {
   ArrowLeft,
   ClipboardList,
   ShieldCheck,
+  PackageCheck,
+  Truck,
+  CheckCircle2,
   LogOut,
   Loader2,
   Sparkles,
@@ -1156,6 +1159,35 @@ interface OrderData {
   createdAt?: string;
   [key: string]: any; // Allow any other fields
 }
+
+const trackingSteps = [
+  { key: "pending", label: "Placed", icon: ClipboardList },
+  { key: "confirmed", label: "Confirmed", icon: PackageCheck },
+  { key: "shipped", label: "Shipped", icon: Truck },
+  { key: "delivered", label: "Delivered", icon: CheckCircle2 },
+];
+
+const getOrderImage = (order: OrderData) => {
+  const firstItem = Array.isArray(order.items) ? order.items[0] : undefined;
+  return (
+    firstItem?.product?.image ||
+    firstItem?.product?.images?.[0] ||
+    order.productImage ||
+    order.image ||
+    "/babyset/more.png"
+  );
+};
+
+const getTrackingBarcodeImage = (order: OrderData) => {
+  return order.trackingBarcodeImageUrl || order.trackingImageUrl || "";
+};
+
+const getTrackingIndex = (status?: string) => {
+  const normalizedStatus = (status || "pending").toLowerCase();
+  if (normalizedStatus === "cancelled") return -1;
+  const index = trackingSteps.findIndex((step) => step.key === normalizedStatus);
+  return index >= 0 ? index : 0;
+};
 
 function getAuthErrorMessage(error: unknown) {
   const code =
@@ -1623,7 +1655,14 @@ export default function AuthPage({
                         </button>
                       </div>
                     ) : (
-                      orders.map((order) => (
+                      orders.map((order) => {
+                        const trackingIndex = getTrackingIndex(order.status);
+                        const isCancelled =
+                          (order.status || "").toLowerCase() === "cancelled";
+                        const trackingBarcodeImage =
+                          getTrackingBarcodeImage(order);
+
+                        return (
                         <div
                           key={order.id}
                           className="border border-primary/10 rounded-2xl p-5 hover:shadow-md transition-shadow space-y-4"
@@ -1634,7 +1673,7 @@ export default function AuthPage({
                                 Order Reference
                               </span>
                               <span className="font-bold text-sm font-serif text-primary">
-                                {order.id}
+                                {order.orderId || order.id}
                               </span>
                             </div>
                             <div>
@@ -1654,9 +1693,17 @@ export default function AuthPage({
                             </div>
                           </div>
 
-                          <div className="flex justify-between items-start gap-4">
-                            <div>
-                              <h4 className="font-serif font-bold text-sm text-gray-900">
+                          <div className="grid gap-4 sm:grid-cols-[92px_1fr_auto] items-start">
+                            <div className="w-full sm:w-[92px] aspect-square rounded-xl overflow-hidden bg-primary/5 border border-primary/10">
+                              <img
+                                src={getOrderImage(order)}
+                                alt={`${order.productName || "Order"} tracking`}
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                              />
+                            </div>
+                            <div className="min-w-0">
+                              <h4 className="font-serif font-bold text-sm text-gray-900 break-words">
                                 {order.productName || "Baby Set"}
                               </h4>
                               <span className="text-xs text-outline block mt-0.5">
@@ -1694,7 +1741,7 @@ export default function AuthPage({
                                   </div>
                                 )}
                             </div>
-                            <div className="text-right">
+                            <div className="text-left sm:text-right">
                               <span className="text-xs text-outline block">
                                 Order Value
                               </span>
@@ -1703,6 +1750,76 @@ export default function AuthPage({
                               </span>
                             </div>
                           </div>
+
+                          <div className="rounded-xl bg-surface-container-low/70 border border-primary/5 p-4">
+                            <div className="flex items-center justify-between gap-2">
+                              {trackingSteps.map((step, index) => {
+                                const StepIcon = step.icon;
+                                const isActive =
+                                  !isCancelled && index <= trackingIndex;
+
+                                return (
+                                  <React.Fragment key={step.key}>
+                                    <div className="flex min-w-0 flex-1 flex-col items-center gap-2 text-center">
+                                      <div
+                                        className={`h-9 w-9 rounded-full border flex items-center justify-center transition-colors ${
+                                          isActive
+                                            ? "bg-primary text-white border-primary"
+                                            : "bg-white text-outline border-primary/10"
+                                        }`}
+                                      >
+                                        <StepIcon className="w-4 h-4" />
+                                      </div>
+                                      <span
+                                        className={`text-[10px] font-semibold ${
+                                          isActive ? "text-primary" : "text-outline"
+                                        }`}
+                                      >
+                                        {step.label}
+                                      </span>
+                                    </div>
+                                    {index < trackingSteps.length - 1 && (
+                                      <div
+                                        className={`hidden sm:block h-px w-8 -mx-2 ${
+                                          !isCancelled && index < trackingIndex
+                                            ? "bg-primary"
+                                            : "bg-primary/10"
+                                        }`}
+                                      />
+                                    )}
+                                  </React.Fragment>
+                                );
+                              })}
+                            </div>
+                            {isCancelled && (
+                              <p className="mt-3 text-xs font-semibold text-red-600 text-center">
+                                This order has been cancelled.
+                              </p>
+                            )}
+                          </div>
+
+                          {trackingBarcodeImage && (
+                            <div className="rounded-xl bg-white border border-primary/10 p-4">
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                                <div className="flex-1 min-w-0">
+                                  <span className="text-xs text-outline block">
+                                    Tracking Barcode
+                                  </span>
+                                  <p className="text-xs text-on-surface-variant mt-1">
+                                    Scan or save this image for shipment tracking.
+                                  </p>
+                                </div>
+                                <div className="w-full sm:w-52 rounded-lg overflow-hidden bg-background border border-primary/5">
+                                  <img
+                                    src={trackingBarcodeImage}
+                                    alt={`Tracking barcode for order ${order.id}`}
+                                    className="w-full h-auto object-contain"
+                                    loading="lazy"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          )}
 
                           {order.giftWrap && (
                             <div className="flex items-center gap-2 text-xs text-primary/70 bg-primary/5 rounded-lg px-3 py-1.5">
@@ -1724,7 +1841,8 @@ export default function AuthPage({
                             </p>
                           </div>
                         </div>
-                      ))
+                      );
+                    })
                     )}
                   </div>
                 )}
