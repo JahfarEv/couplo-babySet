@@ -679,7 +679,7 @@ const getEmbroideryText = (customization: any): string | undefined => {
 };
 
 const formatWebOrderId = (orderNumber: number): string => {
-  return `web-${String(orderNumber).padStart(4, "0")}`;
+  return `web${1000 + orderNumber}`;
 };
 
 const getNextWebOrderId = async (): Promise<string> => {

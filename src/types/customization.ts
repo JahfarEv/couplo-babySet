@@ -13,6 +13,7 @@ export interface CustomizationDetails {
   giftWrap: boolean;
   giftMessage: string;
   specialNotes: string;
+  additionalNotes: string;
   contactNumber: string;
 }
 
@@ -30,6 +31,7 @@ export const EMPTY_CUSTOMIZATION: CustomizationDetails = {
   giftWrap: false,
   giftMessage: "",
   specialNotes: "",
+  additionalNotes: "",
   embroideryText: "",
   contactNumber: "",
 };

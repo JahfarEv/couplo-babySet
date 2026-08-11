@@ -53,6 +53,9 @@ export function buildWhatsAppOrderMessage(
     if (customization.specialNotes) {
       message += `• Special Instructions: ${customization.specialNotes}\n`;
     }
+    if (customization.additionalNotes) {
+      message += `• Additional Notes: ${customization.additionalNotes}\n`;
+    }
   }
 
   message += `\nPlease let me know availability and production timeline. Thank you! âœ¨`;

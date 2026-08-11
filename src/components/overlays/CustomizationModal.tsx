@@ -618,37 +618,7 @@ const [showBowInfo, setShowBowInfo] = useState(false);
         </div>
       </div>
 
-      {/* Bow */}
-      {/* <div className="space-y-1.5">
-        <label className="text-[11px] uppercase tracking-wider font-bold text-outline flex items-center gap-1.5">
-          Bow
-          <div className="relative group flex items-center">
-            <Info className="w-3.5 h-3.5 text-on-surface-variant cursor-help" />
-            <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-72 p-3 bg-[#1e1e1e] text-white text-[10px] rounded-xl shadow-lg z-[100] pointer-events-none">
-              <p className="font-bold mb-1">Available Colours:</p>
-              <p className="mb-2 text-white/80">Gold, Blue, Navy Blue, Royal Blue, Pepsi Blue, Pink, Rani Pink, Onion Pink, Muddy Pink, Red, Yellow, Purple, Maroon, Dark Green, Beige, Brown & Black.</p>
-              <p className="font-bold mb-1">Available Placements:</p>
-              <p className="mb-2 text-white/80">Cap, Neck, Both Hand Socks, Both Boots.</p>
-              <p className="font-bold mb-1">Example:</p>
-              <ul className="list-disc pl-4 text-white/80 space-y-0.5">
-                <li>Gold – Cap & Neck</li>
-                <li>Pink – Both Boots</li>
-                <li>Red – Hand Socks</li>
-                <li>Royal Blue – Full Bow Set</li>
-              </ul>
-              <div className="absolute left-1.5 -bottom-1 w-2 h-2 bg-[#1e1e1e] rotate-45" />
-            </div>
-          </div>
-        </label>
-        <input
-          id="custom-bow"
-          type="text"
-          value={customization.bow || ""}
-          onChange={(e) => onChange({ bow: e.target.value })}
-          placeholder="e.g. Gold - Cap & Neck"
-          className="w-full border border-outline-variant rounded-xl px-4 py-3 text-sm text-on-surface bg-white placeholder-outline focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-        />
-      </div> */}
+     
 
 
       <div className="space-y-1.5">
@@ -816,6 +786,25 @@ const [showBowInfo, setShowBowInfo] = useState(false);
           className="w-full border border-outline-variant rounded-xl px-4 py-3 text-sm text-on-surface bg-white placeholder-outline focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
         />
         <p className="text-[10px] text-on-surface-variant">We'll use this to send order updates via WhatsApp</p>
+      </div>
+
+      {/* Special notes */}
+      <div className="space-y-1.5">
+        <label className="text-[11px] uppercase tracking-wider font-bold text-outline flex items-center gap-1">
+          <MessageSquare className="w-3 h-3" /> Special Instructions
+        </label>
+        <textarea
+          id="special-notes"
+          value={customization.specialNotes || ""}
+          onChange={(e) => onChange({ specialNotes: e.target.value })}
+          placeholder="e.g. Prefer organic dye, rush delivery needed, specific packaging requests…"
+          rows={3}
+          maxLength={300}
+          className="w-full border border-outline-variant rounded-xl px-4 py-3 text-sm text-on-surface bg-white placeholder-outline focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none"
+        />
+        <p className="text-[10px] text-on-surface-variant text-right">
+          {(customization.specialNotes || "").length}/300
+        </p>
       </div>
 
       {/* Product preview */}
@@ -1016,6 +1005,25 @@ function StepGiftNotes({ customization, onChange }: StepProps) {
           {customization.specialNotes.length}/300
         </p>
       </div>
+
+      {/* Additional Notes */}
+      <div className="space-y-1.5">
+        <label className="text-[11px] uppercase tracking-wider font-bold text-outline flex items-center gap-1">
+          <MessageSquare className="w-3 h-3" /> Additional Notes
+        </label>
+        <textarea
+          id="additional-notes"
+          value={customization.additionalNotes || ""}
+          onChange={(e) => onChange({ additionalNotes: e.target.value })}
+          placeholder="e.g. Please leave at front door, specific thread preferences, etc."
+          rows={3}
+          maxLength={300}
+          className="w-full border border-outline-variant rounded-xl px-4 py-3 text-sm text-on-surface bg-white placeholder-outline focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none"
+        />
+        <p className="text-[10px] text-on-surface-variant text-right">
+          {(customization.additionalNotes || "").length}/300
+        </p>
+      </div>
     </div>
   );
 }
@@ -1054,6 +1062,9 @@ function StepReview({
     { label: "Quantity", value: String(quantity) },
     ...(customization.specialNotes
       ? [{ label: "Special Notes", value: customization.specialNotes }]
+      : []),
+    ...(customization.additionalNotes
+      ? [{ label: "Additional Notes", value: customization.additionalNotes }]
       : []),
     ...(customization.contactNumber
       ? [{ label: "WhatsApp No.", value: customization.contactNumber }]

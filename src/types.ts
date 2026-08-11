@@ -47,6 +47,7 @@ export interface Customization {
   giftWrap?: boolean;
   giftMessage?: string;
   specialNotes?: string;
+  additionalNotes?: string;
   selectedSize?: string;
   selectedColor?: string;
 }
