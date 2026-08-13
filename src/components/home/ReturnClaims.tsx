@@ -16,7 +16,7 @@ export default function ReturnClaims() {
       "I will share the uncut unboxing video here.",
     ].join("\n");
 
-    window.open(`https://wa.me/919539794665?text=${encodeURIComponent(message)}`, "_blank");
+    window.open(`https://wa.me/918089670175?text=${encodeURIComponent(message)}`, "_blank");
   };
 
   return (

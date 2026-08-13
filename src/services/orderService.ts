@@ -661,6 +661,7 @@ export interface Order {
   giftWrap?: boolean;
   giftMessage?: string;
   specialNotes?: string;
+  estimatedDispatchingDate?: any;
 }
 
 // Helper to remove all undefined fields recursively so Firestore doesn't reject document

@@ -777,7 +777,7 @@ export default function QuickViewModal({
                         prev === 0 ? totalSlides - 1 : prev - 1
                       );
                     }}
-                    className={`absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm border-none cursor-pointer shadow-lg ${
+                    className={`absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 backdrop-blur-sm border-none cursor-pointer shadow-lg ${
                       isOnInstagramSlide
                         ? "bg-white/30 hover:bg-white/50 text-white"
                         : "bg-black/40 hover:bg-black/60 text-white"
@@ -797,7 +797,7 @@ export default function QuickViewModal({
                         prev === totalSlides - 1 ? 0 : prev + 1
                       );
                     }}
-                    className={`absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm border-none cursor-pointer shadow-lg ${
+                    className={`absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 backdrop-blur-sm border-none cursor-pointer shadow-lg ${
                       isOnInstagramSlide
                         ? "bg-white/30 hover:bg-white/50 text-white"
                         : "bg-black/40 hover:bg-black/60 text-white"

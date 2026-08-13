@@ -61,6 +61,7 @@ export interface Order {
   statusColor?: string;
   notes?: string;
   date: string;
+  estimatedDispatchingDate?: any;
   createdAt?: string;
   updatedAt?: string;
 }

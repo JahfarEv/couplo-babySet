@@ -1157,6 +1157,7 @@ interface OrderData {
   productName?: string;
   notes?: string;
   createdAt?: string;
+  estimatedDispatchingDate?: any;
   [key: string]: any; // Allow any other fields
 }
 
@@ -1180,6 +1181,25 @@ const getOrderImage = (order: OrderData) => {
 
 const getTrackingBarcodeImage = (order: OrderData) => {
   return order.trackingBarcodeImageUrl || order.trackingImageUrl || "";
+};
+
+const formatEstimatedDispatchingDate = (value: unknown) => {
+  if (!value) return "Not scheduled";
+
+  const timestampValue = value as { toDate?: () => Date };
+  const dateValue =
+    typeof timestampValue?.toDate === "function"
+      ? timestampValue.toDate()
+      : value;
+  const date = new Date(dateValue as string | number | Date);
+
+  return Number.isNaN(date.getTime())
+    ? String(value)
+    : date.toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      });
 };
 
 const getTrackingIndex = (status?: string) => {
@@ -1709,6 +1729,16 @@ export default function AuthPage({
                               <span className="text-xs text-outline block mt-0.5">
                                 Quantity: {order.qty || 1}
                               </span>
+                              <div className="mt-2 rounded-lg bg-primary/5 px-3 py-2 text-xs">
+                                <span className="font-semibold text-primary">
+                                  Estimated Dispatching Date: {" "}
+                                </span>
+                                <span className="text-gray-700">
+                                  {formatEstimatedDispatchingDate(
+                                    order.estimatedDispatchingDate,
+                                  )}
+                                </span>
+                              </div>
 
                               {/* Display embroidery details */}
                               {order.embroideryText && (
