@@ -19,6 +19,7 @@ export interface Product {
   status?: "Active" | "Draft" | "Out of Stock";
   customizable?: boolean;
   sold?: number;
+  expectedDispatchDays?: number;
   createdAt?: unknown;
   updatedAt?: unknown;
 }

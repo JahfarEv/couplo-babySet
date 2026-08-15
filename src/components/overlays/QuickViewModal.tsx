@@ -898,6 +898,13 @@ export default function QuickViewModal({
                   </span>
                 </div>
 
+                {product.expectedDispatchDays != null &&
+                  product.expectedDispatchDays > 0 && (
+                    <p className="text-xs font-medium text-primary/80">
+                      Expected dispatch: {product.expectedDispatchDays} {product.expectedDispatchDays === 1 ? "day" : "days"}
+                    </p>
+                  )}
+
                 {/*
                   FIX: description is just a fixed-height box that scrolls.
                   No clamp, no expand/collapse — this is what keeps the

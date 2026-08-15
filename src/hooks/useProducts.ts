@@ -42,6 +42,7 @@ export function useUserProducts() {
             isNew: Boolean(data.isNew),
             sizes: data.sizes || [],
             colors: data.colors || [],
+            expectedDispatchDays: Number(data.expectedDispatchDays) || undefined,
             stock: Number(data.stock) || 0,
             status: data.status || "Draft",
             customizable: Boolean(data.customizable),
