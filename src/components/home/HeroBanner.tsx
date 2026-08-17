@@ -78,7 +78,7 @@ export default function HeroBanner({ onShopCollection, onExploreCategories }: He
         <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto w-full flex flex-col md:flex-row items-center justify-center md:justify-start">
+      <div className="relative z-10 max-w-7xl mx-auto w-full hidden md:flex flex-col md:flex-row items-center justify-center md:justify-start">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
