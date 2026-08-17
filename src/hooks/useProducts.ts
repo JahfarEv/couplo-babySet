@@ -43,6 +43,7 @@ export function useUserProducts() {
             sizes: data.sizes || [],
             colors: data.colors || [],
             expectedDispatchDays: Number(data.expectedDispatchDays) || undefined,
+            expectedDeliveryDays: Number(data.expectedDeliveryDays) || undefined,
             stock: Number(data.stock) || 0,
             status: data.status || "Draft",
             customizable: Boolean(data.customizable),

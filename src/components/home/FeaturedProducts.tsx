@@ -6,6 +6,7 @@ import { formatCategoryName } from "../../utils/categoryUtils";
 
 interface FeaturedProductsProps {
   products: Product[];
+  completedOrderCounts?: Record<string, number>;
   categoryFilter: CategoryFilter;
   categoryTabs?: CategoryFilter[];
   getCategoryLabel?: (category: CategoryFilter) => string;
@@ -21,7 +22,8 @@ const DEFAULT_CATEGORY_TABS: CategoryFilter[] = ["all"];
 
 const FeaturedProducts = forwardRef<HTMLDivElement, FeaturedProductsProps>(
   ({ 
-    products, 
+    products,
+    completedOrderCounts = {},
     categoryFilter, 
     categoryTabs = DEFAULT_CATEGORY_TABS, 
     getCategoryLabel: labelMapper, 
@@ -124,6 +126,7 @@ const FeaturedProducts = forwardRef<HTMLDivElement, FeaturedProductsProps>(
                 <ProductCard 
                   key={p.id} 
                   product={p} 
+                  completedOrderCount={completedOrderCounts[p.id] || 0}
                   onQuickView={onQuickView} 
                   onAddToCart={onAddToCart} 
                 />

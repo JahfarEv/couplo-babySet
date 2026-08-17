@@ -3,11 +3,12 @@ import { Product } from "../../types";
 
 interface ProductCardProps {
   product: Product;
+  completedOrderCount?: number;
   onQuickView: (product: Product) => void;
   onAddToCart: (product: Product) => void;
 }
 
-export default function ProductCard({ product, onQuickView, onAddToCart }: ProductCardProps) {
+export default function ProductCard({ product, completedOrderCount = 0, onQuickView, onAddToCart }: ProductCardProps) {
   return (
     <div
       onClick={() => onQuickView(product)}
@@ -24,6 +25,11 @@ export default function ProductCard({ product, onQuickView, onAddToCart }: Produ
             New
           </div>
         )}
+{completedOrderCount > 0 && (
+  <div className="absolute top-3 right-3 bg-primary/10 text-on-primary text-[13px] px-2.5 py-1 rounded-full z-10 font-semibold backdrop-blur-sm border border-primary/20">
+    {completedOrderCount} {completedOrderCount === 1 ? 'piece' : 'pieces'} sold
+  </div>
+)}
         <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
           <span className="bg-surface text-primary text-xs font-semibold px-4 py-2 rounded-full shadow-lg border border-primary/5">
             Quick View

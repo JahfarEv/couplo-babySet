@@ -12,6 +12,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { useToast } from "./hooks/useToast";
 import { useScrollVisibility } from "./hooks/useScrollVisibility";
 import { useQuickView } from "./hooks/useQuickView";
+import { useCompletedOrderCounts } from "./hooks/useCompletedOrderCounts";
 import { useCustomizationFlow } from "./hooks/useCustomizationFlow";
 import { CustomizationDetails } from "./types/customization";
 import PremiumCustomization from "./components/home/PremiumCustomization";
@@ -49,6 +50,7 @@ export default function App() {
 
   // ✅ Use the same approach as admin - real-time updates
   const { products, loading: productsLoading } = useUserProducts();
+  const completedOrderCounts = useCompletedOrderCounts();
   const { categories, loading: categoriesLoading } = useCategories();
 
   const { toasts, showToast, dismissToast } = useToast();
@@ -516,6 +518,7 @@ console.log("⏳ Loading state:", productsLoading);
             <FeaturedProducts
               ref={featuredSectionRef}
               products={filteredProducts}
+              completedOrderCounts={completedOrderCounts}
               categoryFilter={categoryFilter}
               categoryTabs={["all", ...categories.map((item) => item.value)]}
               getCategoryLabel={(cat) => getCategoryLabel(cat, categories)}

@@ -20,6 +20,7 @@ export interface Product {
   customizable?: boolean;
   sold?: number;
   expectedDispatchDays?: number;
+  expectedDeliveryDays?: number;
   createdAt?: unknown;
   updatedAt?: unknown;
 }

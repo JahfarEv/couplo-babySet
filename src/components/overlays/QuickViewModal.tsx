@@ -587,7 +587,7 @@
 //   );
 // }
 
-import { X, Star, Headphones, ShoppingBag, MessageSquare, Send, Eye, ChevronLeft, ChevronRight, Instagram } from "lucide-react";
+import { X, Star, Headphones, ShoppingBag, MessageSquare, Send, Eye, ChevronLeft, ChevronRight, Instagram, Clock3, Truck } from "lucide-react";
 
 const INSTAGRAM_URL = "https://www.instagram.com/couplo.babyset?igsh=MWNuejNwdGxmaDJqbA%3D%3D&utm_source=qr";
 import { motion, AnimatePresence } from "motion/react";
@@ -898,12 +898,24 @@ export default function QuickViewModal({
                   </span>
                 </div>
 
-                {product.expectedDispatchDays != null &&
-                  product.expectedDispatchDays > 0 && (
-                    <p className="text-xs font-medium text-primary/80">
-                      Expected dispatch days: {product.expectedDispatchDays} {product.expectedDispatchDays === 1 ? "day" : "days"}
-                    </p>
-                  )}
+                {(product.expectedDispatchDays != null && product.expectedDispatchDays > 0) ||
+                  (product.expectedDeliveryDays != null && product.expectedDeliveryDays > 0) ? (
+                  <div className="flex flex-wrap items-center gap-2">
+                    {product.expectedDispatchDays != null && product.expectedDispatchDays > 0 && (
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/15 bg-primary-container px-3 py-1.5 text-[11px] font-semibold text-primary shadow-sm">
+                        <Clock3 className="h-3.5 w-3.5" aria-hidden="true" />
+                        Dispatch: {product.expectedDispatchDays} {product.expectedDispatchDays === 1 ? "day" : "days"}
+                      </span>
+                    )}
+
+                    {product.expectedDeliveryDays != null && product.expectedDeliveryDays > 0 && (
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-secondary/20 bg-secondary-container px-3 py-1.5 text-[11px] font-semibold text-secondary shadow-sm">
+                        <Truck className="h-3.5 w-3.5" aria-hidden="true" />
+                        Delivery: {product.expectedDeliveryDays} {product.expectedDeliveryDays === 1 ? "day" : "days"}
+                      </span>
+                    )}
+                  </div>
+                ) : null}
 
                 {/*
                   FIX: description is just a fixed-height box that scrolls.
