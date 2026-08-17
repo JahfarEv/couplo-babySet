@@ -48,7 +48,7 @@ export function useUserProducts() {
             customizable: Boolean(data.customizable),
             sold: Number(data.sold) || 0,
           } as Product;
-        });
+        }).filter((product) => product.status?.toLowerCase() === "active");
 
         console.log("✅ Final products:", items);
         setProducts(items);

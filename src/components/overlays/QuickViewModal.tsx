@@ -901,7 +901,7 @@ export default function QuickViewModal({
                 {product.expectedDispatchDays != null &&
                   product.expectedDispatchDays > 0 && (
                     <p className="text-xs font-medium text-primary/80">
-                      Expected dispatch and delivery days: {product.expectedDispatchDays} {product.expectedDispatchDays === 1 ? "day" : "days"}
+                      Expected dispatch days: {product.expectedDispatchDays} {product.expectedDispatchDays === 1 ? "day" : "days"}
                     </p>
                   )}
 
