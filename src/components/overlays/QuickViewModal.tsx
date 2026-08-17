@@ -734,7 +734,7 @@ export default function QuickViewModal({
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
             transition={{ type: "spring", damping: 25, stiffness: 350 }}
-            className="relative bg-surface-container-lowest max-w-6xl w-full rounded-2xl md:rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] min-h-0 flex flex-col md:flex-row z-10 border border-primary/10"
+            className="relative bg-surface-container-lowest max-w-6xl w-full rounded-2xl md:rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] lg:h-[700px] min-h-0 flex flex-col md:flex-row z-10 border border-primary/10"
           >
             {/* Left Column - Image Carousel */}
             <div className="w-full md:w-[180px] lg:w-[300px] bg-surface-container flex-shrink-0">
@@ -901,7 +901,7 @@ export default function QuickViewModal({
                 {product.expectedDispatchDays != null &&
                   product.expectedDispatchDays > 0 && (
                     <p className="text-xs font-medium text-primary/80">
-                      Expected dispatch: {product.expectedDispatchDays} {product.expectedDispatchDays === 1 ? "day" : "days"}
+                      Expected dispatch and delivery days: {product.expectedDispatchDays} {product.expectedDispatchDays === 1 ? "day" : "days"}
                     </p>
                   )}
 

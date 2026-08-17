@@ -532,6 +532,8 @@ import {
   Upload,
   Info,
   Loader2,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { Product } from "../../types";
 import { CustomizationDetails } from "../../types/customization";
@@ -1240,11 +1242,18 @@ export default function CustomizationModal({
                     type="button"
                     onClick={(e) => {
                       e.preventDefault();
-                      setShowTerms(!showTerms);
+                      setShowTerms((current) => !current);
                     }}
-                    className="text-primary font-semibold hover:underline"
+                    aria-expanded={showTerms}
+                    aria-controls="shipping-terms-content"
+                    className="inline-flex items-center gap-1 text-left text-primary font-semibold hover:underline"
                   >
                     Shipping Terms & Conditions
+                    {showTerms ? (
+                      <ChevronUp className="w-4 h-4" aria-hidden="true" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4" aria-hidden="true" />
+                    )}
                   </button>
                 </div>
               </label>
@@ -1252,6 +1261,7 @@ export default function CustomizationModal({
               <AnimatePresence>
                 {showTerms && (
                   <motion.div
+                    id="shipping-terms-content"
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
