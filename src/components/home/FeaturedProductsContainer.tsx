@@ -53,7 +53,7 @@
 
 import { useState, useRef, useMemo } from "react";
 import FeaturedProducts from "./FeaturedProducts";
-import { useUserProducts } from "../../hooks/useProducts";
+import { useUserProducts, ProductPriceRange } from "../../hooks/useProducts";
 import { useCategories } from "../../hooks/useCategories";
 import { CategoryFilter, Product } from "../../types";
 import { categoryMatches, generateCategoryTabs, getCategoryLabel } from "../../utils/categoryUtils";
@@ -70,7 +70,15 @@ export default function FeaturedProductsContainer({
   onAddToCart,
 }: FeaturedProductsContainerProps) {
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
-  const { products, loading: productsLoading } = useUserProducts();
+  const [priceRange, setPriceRange] = useState<ProductPriceRange>("all");
+  const {
+    products,
+    loading: productsLoading,
+    loadingPage: productsLoadingPage,
+    currentPage: productsCurrentPage,
+    totalPages: productsTotalPages,
+    goToPage: goToProductsPage,
+  } = useUserProducts(priceRange);
   const { categories } = useCategories();
   const sectionRef = useRef<HTMLDivElement>(null);
 
@@ -105,9 +113,15 @@ export default function FeaturedProductsContainer({
       categoryTabs={categoryTabs}
       getCategoryLabel={handleGetCategoryLabel}
       onCategoryChange={setCategoryFilter}
+      priceRange={priceRange}
+      onPriceRangeChange={setPriceRange}
       onQuickView={onQuickView}
       onOrder={onOrder}
       onAddToCart={onAddToCart}
+      currentPage={productsCurrentPage}
+      totalPages={productsTotalPages}
+      onPageChange={goToProductsPage}
+      loadingPage={productsLoadingPage}
       loading={productsLoading}
     />
   );

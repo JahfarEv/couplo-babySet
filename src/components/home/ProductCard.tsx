@@ -26,8 +26,8 @@ export default function ProductCard({ product, completedOrderCount = 0, onQuickV
           </div>
         )}
 {completedOrderCount > 0 && (
-  <div className="absolute top-3 right-3 bg-primary/10 text-on-primary text-[13px] px-2.5 py-1 rounded-full z-10 font-semibold backdrop-blur-sm border border-primary/20">
-    {completedOrderCount} {completedOrderCount === 1 ? 'piece' : 'pieces'} sold
+  <div className="absolute top-3 right-3 bg-white/95 text-primary text-[10px] px-2.5 py-1 rounded-full z-10 font-bold shadow-sm border border-primary/10">
+    ⭐ {completedOrderCount} sold this month
   </div>
 )}
         <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">

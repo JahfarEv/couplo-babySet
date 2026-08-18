@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState, useEffect } from "react";
 import { CategoryFilter, Product, User, CartItem } from "./types";
-import { useUserProducts } from "./hooks/useProducts"; // ✅ Import the hook
+import { useUserProducts, ProductPriceRange } from "./hooks/useProducts"; // ✅ Import the hook
 import { useCategories } from "./hooks/useCategories";
 import { categoryMatches, getCategoryLabel } from "./utils/categoryUtils";
 import { orderService } from "./services/orderService";
@@ -36,6 +36,7 @@ import CustomizationModal from "./components/overlays/CustomizationModal";
 
 export default function App() {
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
+  const [priceRange, setPriceRange] = useState<ProductPriceRange>("all");
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -49,7 +50,14 @@ export default function App() {
   const [cartOpen, setCartOpen] = useState(false);
 
   // ✅ Use the same approach as admin - real-time updates
-  const { products, loading: productsLoading } = useUserProducts();
+  const {
+    products,
+    loading: productsLoading,
+    loadingPage: productsLoadingPage,
+    currentPage: productsCurrentPage,
+    totalPages: productsTotalPages,
+    goToPage: goToProductsPage,
+  } = useUserProducts(priceRange);
   const completedOrderCounts = useCompletedOrderCounts();
   const { categories, loading: categoriesLoading } = useCategories();
 
@@ -523,9 +531,15 @@ console.log("⏳ Loading state:", productsLoading);
               categoryTabs={["all", ...categories.map((item) => item.value)]}
               getCategoryLabel={(cat) => getCategoryLabel(cat, categories)}
               onCategoryChange={setCategoryFilter}
+              priceRange={priceRange}
+              onPriceRangeChange={setPriceRange}
               onQuickView={quickView.openQuickView}
               onOrder={(product) => handleOrder(product)}
               onAddToCart={(product) => handleAddToCartWithCustomization(product, 1)}
+              currentPage={productsCurrentPage}
+              totalPages={productsTotalPages}
+              onPageChange={goToProductsPage}
+              loadingPage={productsLoadingPage}
               loading={productsLoading || categoriesLoading}
             />
 
