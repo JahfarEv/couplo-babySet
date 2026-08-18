@@ -1224,39 +1224,22 @@ export default function CustomizationModal({
 
             {/* Terms & Conditions */}
             <div className="px-6 py-4 border-t border-outline-variant/30 flex-shrink-0 bg-surface-container-lowest">
-              <label className="flex items-start gap-3 cursor-pointer group">
-                <div className="relative flex items-center justify-center mt-0.5">
-                  <input
-                    type="checkbox"
-                    checked={agreedToTerms}
-                    onChange={(e) => setAgreedToTerms(e.target.checked)}
-                    className="peer sr-only"
-                  />
-                  <div className="w-5 h-5 rounded border-2 border-outline-variant peer-checked:border-primary peer-checked:bg-primary transition-all flex items-center justify-center">
-                    <Check className="w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 transition-opacity" strokeWidth={3} />
-                  </div>
-                </div>
-                <div className="flex-1 text-sm text-on-surface">
-                  I agree to the{" "}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setShowTerms((current) => !current);
-                    }}
-                    aria-expanded={showTerms}
-                    aria-controls="shipping-terms-content"
-                    className="inline-flex items-center gap-1 text-left text-primary font-semibold hover:underline"
-                  >
-                    Shipping Terms & Conditions
-                    {showTerms ? (
-                      <ChevronUp className="w-4 h-4" aria-hidden="true" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4" aria-hidden="true" />
-                    )}
-                  </button>
-                </div>
-              </label>
+              <div className="text-sm text-on-surface">
+                <button
+                  type="button"
+                  onClick={() => setShowTerms((current) => !current)}
+                  aria-expanded={showTerms}
+                  aria-controls="shipping-terms-content"
+                  className="inline-flex items-center gap-1 text-left text-primary font-semibold hover:underline"
+                >
+                  Shipping Terms & Conditions
+                  {showTerms ? (
+                    <ChevronUp className="w-4 h-4" aria-hidden="true" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4" aria-hidden="true" />
+                  )}
+                </button>
+              </div>
 
               <AnimatePresence>
                 {showTerms && (
@@ -1355,6 +1338,23 @@ export default function CustomizationModal({
                   </motion.div>
                 )}
               </AnimatePresence>
+
+              {showTerms && (
+                <label className="mt-4 flex items-start gap-3 text-sm text-on-surface cursor-pointer group">
+                  <div className="relative flex items-center justify-center mt-0.5">
+                    <input
+                      type="checkbox"
+                      checked={agreedToTerms}
+                      onChange={(e) => setAgreedToTerms(e.target.checked)}
+                      className="peer sr-only"
+                    />
+                    <div className="w-5 h-5 rounded border-2 border-outline-variant peer-checked:border-primary peer-checked:bg-primary transition-all flex items-center justify-center">
+                      <Check className="w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 transition-opacity" strokeWidth={3} />
+                    </div>
+                  </div>
+                  <span className="flex-1">I have read and agree to the Shipping Terms & Conditions.</span>
+                </label>
+              )}
             </div>
 
             {/* Footer */}
