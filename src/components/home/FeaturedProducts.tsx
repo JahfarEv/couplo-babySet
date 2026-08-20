@@ -85,7 +85,7 @@ const FeaturedProducts = forwardRef<HTMLDivElement, FeaturedProductsProps>(
                 className="rounded-full border border-primary/20 bg-surface-container-lowest px-4 py-2 text-xs font-semibold text-on-surface-variant outline-none transition-all focus:border-primary"
                 aria-label="Filter products by price range"
               >
-                <option value="all">All prices</option>
+                <option value="all">Price Category</option>
                 <option value="99-599">₹99 - ₹599</option>
                 <option value="599-1199">₹599 - ₹1199</option>
                 <option value="1199-1799">₹1199 - ₹1799</option>
