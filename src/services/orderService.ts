@@ -631,7 +631,7 @@
 
 
 
-import { doc, setDoc, getDoc, deleteDoc, collection, addDoc, query, where, getDocs, orderBy, runTransaction } from "firebase/firestore";
+import { doc, setDoc, getDoc, deleteDoc, collection, query, where, getDocs, orderBy, runTransaction } from "firebase/firestore";
 import { db } from "../firebase";
 import { CartItem, User } from "../types";
 
@@ -680,7 +680,7 @@ const getEmbroideryText = (customization: any): string | undefined => {
 };
 
 const formatWebOrderId = (orderNumber: number): string => {
-  return `web${1000 + orderNumber}`;
+  return `web-${1000 + orderNumber}`;
 };
 
 const getNextWebOrderId = async (): Promise<string> => {
@@ -806,8 +806,8 @@ export const orderService = {
 
       // Save to Firestore
       try {
-        const docRef = await addDoc(collection(db, "orders"), orderData);
-        docId = docRef.id;
+        await setDoc(doc(db, "orders", orderId), orderData);
+        docId = orderId;
         console.log("✅ Order created in Firestore with ID:", docId);
       } catch (fsErr) {
         console.warn("⚠️ Firestore addDoc failed, using local order fallback:", fsErr);
@@ -904,8 +904,8 @@ export const orderService = {
 
       // Save to Firestore
       try {
-        const docRef = await addDoc(collection(db, "orders"), orderData);
-        docId = docRef.id;
+        await setDoc(doc(db, "orders", orderId), orderData);
+        docId = orderId;
         console.log("✅ Single order created in Firestore with ID:", docId);
       } catch (fsErr) {
         console.warn("⚠️ Firestore addDoc failed for single order:", fsErr);
@@ -948,7 +948,7 @@ export const orderService = {
           const data = doc.data();
           return {
             id: doc.id,
-            orderId: doc.id,
+            orderId: data.orderId || doc.id,
             ...data,
             status: data.status as Order['status'],
           } as Order;
@@ -963,7 +963,7 @@ export const orderService = {
             const data = doc.data();
             return {
               id: doc.id,
-              orderId: doc.id,
+              orderId: data.orderId || doc.id,
               ...data,
               status: data.status as Order['status'],
             } as Order;
@@ -1024,7 +1024,7 @@ export const orderService = {
         return { 
           id: orderDoc.id, 
           ...data,
-          orderId: orderDoc.id,
+          orderId: data.orderId || orderDoc.id,
           status: data.status as Order['status'],
         } as Order;
       }
