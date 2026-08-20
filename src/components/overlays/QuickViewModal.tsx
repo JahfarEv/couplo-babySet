@@ -587,7 +587,9 @@
 //   );
 // }
 
-import { X, Star, Headphones, ShoppingBag, MessageSquare, Send, Eye } from "lucide-react";
+import { X, Star, Headphones, ShoppingBag, MessageSquare, Send, Eye, ChevronLeft, ChevronRight, Instagram, Clock3, Truck } from "lucide-react";
+
+const INSTAGRAM_URL = "https://www.instagram.com/couplo.babyset?igsh=MWNuejNwdGxmaDJqbA%3D%3D&utm_source=qr";
 import { motion, AnimatePresence } from "motion/react";
 import { Product, ProductReview, User } from "../../types";
 import { useState, useEffect } from "react";
@@ -649,9 +651,20 @@ export default function QuickViewModal({
   const [newReviewRating, setNewReviewRating] = useState(5);
   const [newReviewComment, setNewReviewComment] = useState("");
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Build the full images list: prefer product.images, fallback to product.image
+  const allImages: string[] = product
+    ? (product.images && product.images.length > 0 ? product.images : [product.image])
+    : [];
+
+  // Total slides = product images + 1 Instagram "More Photos" slide
+  const totalSlides = allImages.length + 1;
+  const isOnInstagramSlide = currentImageIndex === allImages.length;
 
   useEffect(() => {
     if (product) {
+      setCurrentImageIndex(0);
       reviewService.getReviewsByProduct(product.id)
         .then(setReviews)
         .catch(console.error);
@@ -721,17 +734,113 @@ export default function QuickViewModal({
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
             transition={{ type: "spring", damping: 25, stiffness: 350 }}
-            className="relative bg-surface-container-lowest max-w-6xl w-full rounded-2xl md:rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] min-h-0 flex flex-col md:flex-row z-10 border border-primary/10"
+            className="relative bg-surface-container-lowest max-w-6xl w-full rounded-2xl md:rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] lg:h-[700px] min-h-0 flex flex-col md:flex-row z-10 border border-primary/10"
           >
-            {/* Left Column - Image */}
+            {/* Left Column - Image Carousel */}
             <div className="w-full md:w-[180px] lg:w-[300px] bg-surface-container flex-shrink-0">
-              <div className="relative h-[180px] md:h-full min-h-[180px]">
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                />
-                {product.isNew && (
+              <div className="relative h-[180px] md:h-full min-h-[180px] group">
+
+                {/* Product Image or Instagram CTA */}
+                {isOnInstagramSlide ? (
+                  <a
+                    href={INSTAGRAM_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full h-full flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-[#833AB4] via-[#E1306C] to-[#F77737] text-white no-underline cursor-pointer"
+                    style={{ textDecoration: 'none' }}
+                  >
+                    <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
+                      <Instagram className="w-8 h-8 text-white" />
+                    </div>
+                    <div className="text-center px-4">
+                      <p className="text-sm font-bold tracking-wide mb-1" style={{ margin: 0 }}>More Photos</p>
+                      <p className="text-[11px] opacity-80" style={{ margin: 0 }}>@couplo.babyset</p>
+                    </div>
+                    <span className="mt-1 text-[10px] font-semibold uppercase tracking-widest bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
+                      View on Instagram →
+                    </span>
+                  </a>
+                ) : (
+                  <img
+                    src={allImages[currentImageIndex] || product.image}
+                    alt={`${product.name} - Image ${currentImageIndex + 1}`}
+                    className="w-full h-full object-cover transition-opacity duration-300"
+                  />
+                )}
+
+                {/* Previous Button */}
+                {totalSlides > 1 && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCurrentImageIndex((prev) =>
+                        prev === 0 ? totalSlides - 1 : prev - 1
+                      );
+                    }}
+                    className={`absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 backdrop-blur-sm border-none cursor-pointer shadow-lg ${
+                      isOnInstagramSlide
+                        ? "bg-white/30 hover:bg-white/50 text-white"
+                        : "bg-black/40 hover:bg-black/60 text-white"
+                    }`}
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                )}
+
+                {/* Next Button */}
+                {totalSlides > 1 && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCurrentImageIndex((prev) =>
+                        prev === totalSlides - 1 ? 0 : prev + 1
+                      );
+                    }}
+                    className={`absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 backdrop-blur-sm border-none cursor-pointer shadow-lg ${
+                      isOnInstagramSlide
+                        ? "bg-white/30 hover:bg-white/50 text-white"
+                        : "bg-black/40 hover:bg-black/60 text-white"
+                    }`}
+                    aria-label="Next image"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                )}
+
+                {/* Dot Indicators */}
+                {totalSlides > 1 && (
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+                    {Array.from({ length: totalSlides }).map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCurrentImageIndex(index);
+                        }}
+                        className={`rounded-full border-none cursor-pointer transition-all duration-300 ${
+                          index === currentImageIndex
+                            ? isOnInstagramSlide
+                              ? "w-5 h-2 bg-white shadow-md"
+                              : "w-5 h-2 bg-white shadow-md"
+                            : index === allImages.length
+                              ? "w-2 h-2 bg-white/50 hover:bg-white/80"
+                              : "w-2 h-2 bg-white/50 hover:bg-white/80"
+                        }`}
+                        aria-label={index === allImages.length ? "More photos on Instagram" : `Go to image ${index + 1}`}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {/* Image Counter */}
+                {totalSlides > 1 && !isOnInstagramSlide && (
+                  <span className="absolute top-3 right-3 bg-black/40 backdrop-blur-sm text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                    {currentImageIndex + 1}/{allImages.length}
+                  </span>
+                )}
+
+                {product.isNew && !isOnInstagramSlide && (
                   <span className="absolute top-3 left-3 bg-primary text-on-primary text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-md">
                     NEW
                   </span>
@@ -788,6 +897,25 @@ export default function QuickViewModal({
                     ₹{product.price.toFixed(2)}
                   </span>
                 </div>
+
+                {(product.expectedDispatchDays != null && product.expectedDispatchDays > 0) ||
+                  (product.expectedDeliveryDays != null && product.expectedDeliveryDays > 0) ? (
+                  <div className="flex flex-wrap items-center gap-2">
+                    {product.expectedDispatchDays != null && product.expectedDispatchDays > 0 && (
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/15 bg-primary-container px-3 py-1.5 text-[11px] font-semibold text-primary shadow-sm">
+                        <Clock3 className="h-3.5 w-3.5" aria-hidden="true" />
+                        Dispatch: {product.expectedDispatchDays} {product.expectedDispatchDays === 1 ? "day" : "days"}
+                      </span>
+                    )}
+
+                    {product.expectedDeliveryDays != null && product.expectedDeliveryDays > 0 && (
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-secondary/20 bg-secondary-container px-3 py-1.5 text-[11px] font-semibold text-secondary shadow-sm">
+                        <Truck className="h-3.5 w-3.5" aria-hidden="true" />
+                        Delivery: {product.expectedDeliveryDays} {product.expectedDeliveryDays === 1 ? "day" : "days"}
+                      </span>
+                    )}
+                  </div>
+                ) : null}
 
                 {/*
                   FIX: description is just a fixed-height box that scrolls.

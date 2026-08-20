@@ -271,8 +271,7 @@ export default function CustomerReviews() {
             What Our Customers Say
           </h2>
           <p className="text-on-surface-variant text-sm max-w-lg mx-auto leading-relaxed">
-            Trusted by thousands of parents worldwide. Every stitch crafted with
-            love, every review earned with care.
+            Trusted by 5,000+ happy families. Every stitch crafted with love, every smile earned with care.
           </p>
 
           {/* Aggregate Rating Badge */}

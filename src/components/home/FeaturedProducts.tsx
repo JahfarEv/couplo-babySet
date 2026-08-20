@@ -3,16 +3,24 @@ import { BellRing, PackagePlus, Sparkles } from "lucide-react";
 import { CategoryFilter, Product } from "../../types";
 import ProductCard from "@/src/components/home/ProductCard";
 import { formatCategoryName } from "../../utils/categoryUtils";
+import type { ProductPriceRange } from "../../hooks/useProducts";
 
 interface FeaturedProductsProps {
   products: Product[];
+  completedOrderCounts?: Record<string, number>;
   categoryFilter: CategoryFilter;
   categoryTabs?: CategoryFilter[];
   getCategoryLabel?: (category: CategoryFilter) => string;
   onCategoryChange: (category: CategoryFilter) => void;
+  priceRange: ProductPriceRange;
+  onPriceRangeChange: (range: ProductPriceRange) => void;
   onQuickView: (product: Product) => void;
   onOrder: (product: Product) => void;
   onAddToCart: (product: Product) => void;
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  loadingPage: boolean;
   loading?: boolean;
 }
 
@@ -21,14 +29,21 @@ const DEFAULT_CATEGORY_TABS: CategoryFilter[] = ["all"];
 
 const FeaturedProducts = forwardRef<HTMLDivElement, FeaturedProductsProps>(
   ({ 
-    products, 
+    products,
+    completedOrderCounts = {},
     categoryFilter, 
     categoryTabs = DEFAULT_CATEGORY_TABS, 
     getCategoryLabel: labelMapper, 
     onCategoryChange, 
+    priceRange,
+    onPriceRangeChange,
     onQuickView, 
     onOrder, 
-    onAddToCart, 
+    onAddToCart,
+    currentPage,
+    totalPages,
+    onPageChange,
+    loadingPage,
     loading = false 
   }, ref) => {
     // Use provided tabs or defaults
@@ -59,12 +74,22 @@ const FeaturedProducts = forwardRef<HTMLDivElement, FeaturedProductsProps>(
                 Soft Picks for Little Smiles
               </h2>
               <p className="text-xs md:text-sm text-on-surface-variant font-medium">
-                Handpicked baby outfits crafted with comfort, cuteness, and
-                easy everyday wear in mind.
+               Crafted with premium comfort and personalized elegance for your little one's special moments.
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
+              <select
+                value={priceRange}
+                onChange={(event) => onPriceRangeChange(event.target.value as ProductPriceRange)}
+                className="rounded-full border border-primary/20 bg-surface-container-lowest px-4 py-2 text-xs font-semibold text-on-surface-variant outline-none transition-all focus:border-primary"
+                aria-label="Filter products by price range"
+              >
+                <option value="all">Price Category</option>
+                <option value="99-599">₹99 - ₹599</option>
+                <option value="599-1199">₹599 - ₹1199</option>
+                <option value="1199-1799">₹1199 - ₹1799</option>
+              </select>
               {tabs.map((cat) => (
                 <button
                   key={String(cat)}
@@ -125,9 +150,31 @@ const FeaturedProducts = forwardRef<HTMLDivElement, FeaturedProductsProps>(
                 <ProductCard 
                   key={p.id} 
                   product={p} 
+                  completedOrderCount={completedOrderCounts[p.id] || 0}
                   onQuickView={onQuickView} 
                   onAddToCart={onAddToCart} 
                 />
+              ))}
+            </div>
+          )}
+
+          {!loading && totalPages > 1 && (
+            <div className="mt-10 flex items-center justify-center gap-2">
+              {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => onPageChange(page)}
+                  disabled={loadingPage}
+                  aria-current={currentPage === page ? "page" : undefined}
+                  className={`h-10 min-w-10 rounded-full border px-3 text-sm font-semibold transition-all disabled:cursor-wait disabled:opacity-60 ${
+                    currentPage === page
+                      ? "border-primary bg-primary text-on-primary"
+                      : "border-primary/30 text-primary hover:border-primary hover:bg-primary-container"
+                  }`}
+                >
+                  {page}
+                </button>
               ))}
             </div>
           )}

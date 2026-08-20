@@ -19,6 +19,8 @@ export interface Product {
   status?: "Active" | "Draft" | "Out of Stock";
   customizable?: boolean;
   sold?: number;
+  expectedDispatchDays?: number;
+  expectedDeliveryDays?: number;
   createdAt?: unknown;
   updatedAt?: unknown;
 }
@@ -37,11 +39,17 @@ export interface CartItem {
 export interface Customization {
   embroideredText?: string;
   babyName?: string;
+  size?: string;
+  romperName?: string;
+  capName?: string;
+  bow?: string;
+  designImageName?: string;
   fontStyle?: string;
   embroideryColor?: string;
   giftWrap?: boolean;
   giftMessage?: string;
   specialNotes?: string;
+  additionalNotes?: string;
   selectedSize?: string;
   selectedColor?: string;
 }

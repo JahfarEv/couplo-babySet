@@ -4,6 +4,14 @@ import { db } from "../firebase";
 import type { Category, CategoryFilter } from "../types";
 import { formatCategoryName, normalizeCategoryValue } from "../utils/categoryUtils";
 
+// Desired display order for categories
+const CATEGORY_ORDER: Record<string, number> = {
+  babyset: 0,
+  tshirt: 1,
+  cordset: 2,
+  accessories: 3,
+};
+
 function getSortTime(value: unknown): number {
   if (!value) return 0;
 
@@ -68,6 +76,11 @@ export function useCategories() {
           })
           .filter((category) => category.value && category.value !== "all")
           .sort((a, b) => {
+            const aOrder = CATEGORY_ORDER[a.value] ?? 999;
+            const bOrder = CATEGORY_ORDER[b.value] ?? 999;
+            if (aOrder !== bOrder) return aOrder - bOrder;
+
+            // Fallback: Firestore order field, then createdAt
             const orderDiff = (a.order ?? 0) - (b.order ?? 0);
             if (orderDiff !== 0) return orderDiff;
 

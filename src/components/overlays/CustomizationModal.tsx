@@ -508,6 +508,15 @@
 //     </AnimatePresence>
 //   );
 // }
+
+
+
+
+
+
+
+
+import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   X,
@@ -520,9 +529,15 @@ import {
   ShoppingBag,
   Headphones,
   Type,
+  Upload,
+  Info,
+  Loader2,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { Product } from "../../types";
 import { CustomizationDetails } from "../../types/customization";
+import { uploadToCloudinary } from "../../utils/cloudinary";
 
 const FONT_STYLES = [
   { id: "Classic Script", preview: "𝒞𝓁𝒶𝓈𝓈𝒾𝒸", desc: "Elegant cursive" },
@@ -551,8 +566,14 @@ interface StepProps {
   onChange: (patch: Partial<CustomizationDetails>) => void;
 }
 
+const ITEM_SIZES = ["S", "M", "L"];
+const BOW_OPTIONS = ["No Bow", "Yes - Matching Bow", "Yes - Contrast Bow"];
+
 /* ─── Step 1: Baby Info ─────────────────────────────────────────────────── */
 function StepBabyInfo({ product, customization, onChange }: StepProps) {
+  const [isUploading, setIsUploading] = useState(false);
+const [showBowInfo, setShowBowInfo] = useState(false);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3 mb-2">
@@ -565,46 +586,169 @@ function StepBabyInfo({ product, customization, onChange }: StepProps) {
         </div>
       </div>
 
-      {/* Custom Embroidery Text - Updated */}
-      <div className="space-y-1.5">
-        <label className="text-[11px] uppercase tracking-wider font-bold text-outline">
-          Embroidery Text <span className="text-primary">*</span>
-        </label>
-        <input
-          id="custom-embroidery-text"
-          type="text"
-          value={customization.embroideryText || customization.babyName || ""}
-          onChange={(e) => onChange({ 
-            embroideryText: e.target.value,
-            babyName: e.target.value // Keep for backward compatibility
-          })}
-          placeholder="e.g. Baby's name, initials, or special message…"
-          maxLength={25}
-          className="w-full border border-outline-variant rounded-xl px-4 py-3 text-sm text-on-surface bg-white placeholder-outline focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-        />
-        <p className="text-[10px] text-on-surface-variant">
-          This text will be embroidered on your item (max 25 characters)
-        </p>
+
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <label className="text-[11px] uppercase tracking-wider font-bold text-outline">
+            Name in Romper
+          </label>
+          <input
+            id="custom-romper-name"
+            type="text"
+            value={customization.romperName}
+            onChange={(e) => onChange({ romperName: e.target.value })}
+            placeholder="Name for romper"
+            maxLength={25}
+            className="w-full border border-outline-variant rounded-xl px-4 py-3 text-sm text-on-surface bg-white placeholder-outline focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-[11px] uppercase tracking-wider font-bold text-outline">
+            Name in Cap
+          </label>
+          <input
+            id="custom-cap-name"
+            type="text"
+            value={customization.capName}
+            onChange={(e) => onChange({ capName: e.target.value })}
+            placeholder="Name for cap"
+            maxLength={25}
+            className="w-full border border-outline-variant rounded-xl px-4 py-3 text-sm text-on-surface bg-white placeholder-outline focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+          />
+        </div>
       </div>
 
-      {/* Baby Name - Optional field for context */}
+     
+
+
+      <div className="space-y-1.5">
+  <label className="text-[11px] uppercase tracking-wider font-bold text-outline flex items-center gap-1.5">
+    Bow
+    <div className="relative flex items-center">
+      <Info 
+        className="w-3.5 h-3.5 text-on-surface-variant cursor-pointer md:cursor-help" 
+        onClick={() => {
+          if (window.innerWidth < 768) {
+            setShowBowInfo(!showBowInfo);
+          }
+        }}
+        onMouseEnter={() => {
+          if (window.innerWidth >= 768) {
+            setShowBowInfo(true);
+          }
+        }}
+        onMouseLeave={() => {
+          if (window.innerWidth >= 768) {
+            setShowBowInfo(false);
+          }
+        }}
+      />
+      {/* Tooltip - Desktop only (floating above) */}
+      {(showBowInfo) && (
+        <div className="hidden md:block absolute left-0 top-full mb-2 
+                        w-72 p-3 bg-[#1e1e1e] text-white text-[10px] rounded-xl shadow-lg z-[100] pointer-events-none">
+          <p className="font-bold mb-1">Available Colours:</p>
+          <p className="mb-2 text-white/80">Gold, Blue, Navy Blue, Royal Blue, Pepsi Blue, Pink, Rani Pink, Onion Pink, Muddy Pink, Red, Yellow, Purple, Maroon, Dark Green, Beige, Brown & Black.</p>
+          <p className="font-bold mb-1">Available Placements:</p>
+          <p className="mb-2 text-white/80">Cap, Neck, Both Hand Socks, Both Boots.</p>
+          <p className="font-bold mb-1">Example:</p>
+          <ul className="list-disc pl-4 text-white/80 space-y-0.5">
+            <li>Gold – Cap & Neck</li>
+            <li>Pink – Both Boots</li>
+            <li>Red – Hand Socks</li>
+            <li>Royal Blue – Full Bow Set</li>
+          </ul>
+          <div className="absolute left-1.5 -bottom-1 w-2 h-2 bg-[#1e1e1e] rotate-45" />
+        </div>
+      )}
+    </div>
+  </label>
+
+  {/* Tooltip - Mobile only (inline in-flow container to prevent clipping in overflow-y-auto modal) */}
+  {showBowInfo && (
+    <div className="block md:hidden relative p-3.5 bg-surface-container border border-outline-variant/30 text-on-surface text-[11px] rounded-xl shadow-sm z-10 transition-all">
+      <p className="font-bold mb-1 text-primary">Available Colours:</p>
+      <p className="mb-2 text-on-surface-variant leading-relaxed">Gold, Blue, Navy Blue, Royal Blue, Pepsi Blue, Pink, Rani Pink, Onion Pink, Muddy Pink, Red, Yellow, Purple, Maroon, Dark Green, Beige, Brown & Black.</p>
+      <p className="font-bold mb-1 text-primary">Available Placements:</p>
+      <p className="mb-2 text-on-surface-variant leading-relaxed">Cap, Neck, Both Hand Socks, Both Boots.</p>
+      <p className="font-bold mb-1 text-primary">Example:</p>
+      <ul className="list-disc pl-4 text-on-surface-variant space-y-1">
+        <li>Gold – Cap & Neck</li>
+        <li>Pink – Both Boots</li>
+        <li>Red – Hand Socks</li>
+        <li>Royal Blue – Full Bow Set</li>
+      </ul>
+      {/* Close button for mobile */}
+      <button 
+        className="absolute top-2.5 right-2.5 text-on-surface-variant hover:text-on-surface p-1 rounded-full hover:bg-surface-container-high transition-all"
+        onClick={(e) => {
+          e.stopPropagation();
+          setShowBowInfo(false);
+        }}
+      >
+        ✕
+      </button>
+    </div>
+  )}
+
+  <input
+    id="custom-bow"
+    type="text"
+    value={customization.bow || ""}
+    onChange={(e) => onChange({ bow: e.target.value })}
+    placeholder="e.g. Gold - Cap & Neck"
+    className="w-full border border-outline-variant rounded-xl px-4 py-3 text-sm text-on-surface bg-white placeholder-outline focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+  />
+</div>
+
+      {/* Design image */}
       <div className="space-y-1.5">
         <label className="text-[11px] uppercase tracking-wider font-bold text-outline">
-          Baby's Name (Optional)
+          Design Reference
         </label>
-        <input
-          id="custom-baby-name"
-          type="text"
-          value={customization.babyName || ""}
-          onChange={(e) => onChange({ babyName: e.target.value })}
-          placeholder="e.g. Amara, Noah, Lily…"
-          maxLength={20}
-          className="w-full border border-outline-variant rounded-xl px-4 py-3 text-sm text-on-surface bg-white placeholder-outline focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-        />
-        <p className="text-[10px] text-on-surface-variant">
-          Used for gift tags and personalization (optional)
-        </p>
+        <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-outline-variant bg-white px-4 py-4 text-sm text-on-surface transition-all hover:border-primary/60">
+          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-primary-container text-primary">
+            {isUploading ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <Upload className="h-5 w-5" />
+            )}
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block font-semibold">
+              {isUploading ? "Uploading..." : customization.designImageName || "Upload design image"}
+            </span>
+            <span className="block truncate text-xs text-on-surface-variant">
+              JPG, PNG, or WEBP reference for your custom design
+            </span>
+          </span>
+          <input
+            id="custom-design-image"
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            className="sr-only"
+            disabled={isUploading}
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                setIsUploading(true);
+                try {
+                  const url = await uploadToCloudinary(file);
+                  onChange({ designImageName: file.name, designImageUrl: url });
+                } catch (error) {
+                  console.error("Upload failed", error);
+                  alert("Failed to upload image. Please try again.");
+                } finally {
+                  setIsUploading(false);
+                }
+              }
+            }}
+          />
+        </label>
       </div>
+
 
       {/* Baby Age */}
       <div className="space-y-2">
@@ -627,6 +771,42 @@ function StepBabyInfo({ product, customization, onChange }: StepProps) {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Contact Number */}
+      <div className="space-y-1.5">
+        <label className="text-[11px] uppercase tracking-wider font-bold text-outline flex items-center gap-1.5">
+          📱 Customer WhatsApp Number
+        </label>
+        <input
+          id="custom-contact-number"
+          type="tel"
+          value={customization.contactNumber || ""}
+          onChange={(e) => onChange({ contactNumber: e.target.value })}
+          placeholder="e.g. +91 98765 43210"
+          maxLength={15}
+          className="w-full border border-outline-variant rounded-xl px-4 py-3 text-sm text-on-surface bg-white placeholder-outline focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+        />
+        <p className="text-[10px] text-on-surface-variant">We'll use this to send order updates via WhatsApp</p>
+      </div>
+
+      {/* Special notes */}
+      <div className="space-y-1.5">
+        <label className="text-[11px] uppercase tracking-wider font-bold text-outline flex items-center gap-1">
+          <MessageSquare className="w-3 h-3" /> Special Instructions
+        </label>
+        <textarea
+          id="special-notes"
+          value={customization.specialNotes || ""}
+          onChange={(e) => onChange({ specialNotes: e.target.value })}
+          placeholder="e.g. Prefer organic dye, rush delivery needed, specific packaging requests…"
+          rows={3}
+          maxLength={300}
+          className="w-full border border-outline-variant rounded-xl px-4 py-3 text-sm text-on-surface bg-white placeholder-outline focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none"
+        />
+        <p className="text-[10px] text-on-surface-variant text-right">
+          {(customization.specialNotes || "").length}/300
+        </p>
       </div>
 
       {/* Product preview */}
@@ -827,6 +1007,25 @@ function StepGiftNotes({ customization, onChange }: StepProps) {
           {customization.specialNotes.length}/300
         </p>
       </div>
+
+      {/* Additional Notes */}
+      <div className="space-y-1.5">
+        <label className="text-[11px] uppercase tracking-wider font-bold text-outline flex items-center gap-1">
+          <MessageSquare className="w-3 h-3" /> Additional Notes
+        </label>
+        <textarea
+          id="additional-notes"
+          value={customization.additionalNotes || ""}
+          onChange={(e) => onChange({ additionalNotes: e.target.value })}
+          placeholder="e.g. Please leave at front door, specific thread preferences, etc."
+          rows={3}
+          maxLength={300}
+          className="w-full border border-outline-variant rounded-xl px-4 py-3 text-sm text-on-surface bg-white placeholder-outline focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none"
+        />
+        <p className="text-[10px] text-on-surface-variant text-right">
+          {(customization.additionalNotes || "").length}/300
+        </p>
+      </div>
     </div>
   );
 }
@@ -850,8 +1049,10 @@ function StepReview({
   const embroideryText = customization.embroideryText || customization.babyName || "";
   
   const rows: { label: string; value: string }[] = [
-    { label: "Embroidery Text", value: embroideryText || "—" },
-    { label: "Baby's Name", value: customization.babyName || "—" },
+    { label: "Name in Romper", value: customization.romperName || "—" },
+    { label: "Name in Cap", value: customization.capName || "—" },
+    { label: "Bow", value: customization.bow || "—" },
+    { label: "Design Image", value: customization.designImageName || "—" },
     { label: "Age", value: customization.babyAge || "—" },
     { label: "Font Style", value: customization.fontStyle },
     { label: "Thread Color", value: customization.embroideryColor },
@@ -859,11 +1060,16 @@ function StepReview({
     ...(customization.giftWrap && customization.giftMessage
       ? [{ label: "Gift Message", value: `"${customization.giftMessage}"` }]
       : []),
-    ...(selectedSize ? [{ label: "Size", value: selectedSize }] : []),
     ...(selectedColor ? [{ label: "Color", value: selectedColor }] : []),
     { label: "Quantity", value: String(quantity) },
     ...(customization.specialNotes
       ? [{ label: "Special Notes", value: customization.specialNotes }]
+      : []),
+    ...(customization.additionalNotes
+      ? [{ label: "Additional Notes", value: customization.additionalNotes }]
+      : []),
+    ...(customization.contactNumber
+      ? [{ label: "WhatsApp No.", value: customization.contactNumber }]
       : []),
   ];
 
@@ -940,7 +1146,15 @@ export default function CustomizationModal({
   onConfirm,
 }: CustomizationModalProps) {
   const embroideryText = customization.embroideryText || customization.babyName || "";
-  const canConfirm = embroideryText.trim().length > 0;
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+
+  const canConfirm = [
+    embroideryText,
+    customization.romperName,
+    customization.capName,
+    customization.designImageName,
+  ].some((value) => value.trim().length > 0) && agreedToTerms;
 
   const handleClose = () => {
     onClose();
@@ -1006,6 +1220,141 @@ export default function CustomizationModal({
                   <StepBabyInfo {...stepProps} />
                 </motion.div>
               </AnimatePresence>
+            </div>
+
+            {/* Terms & Conditions */}
+            <div className="px-6 py-4 border-t border-outline-variant/30 flex-shrink-0 bg-surface-container-lowest">
+              <div className="text-sm text-on-surface">
+                <button
+                  type="button"
+                  onClick={() => setShowTerms((current) => !current)}
+                  aria-expanded={showTerms}
+                  aria-controls="shipping-terms-content"
+                  className="inline-flex items-center gap-1 text-left text-primary font-semibold hover:underline"
+                >
+                  Shipping Terms & Conditions
+                  {showTerms ? (
+                    <ChevronUp className="w-4 h-4" aria-hidden="true" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4" aria-hidden="true" />
+                  )}
+                </button>
+              </div>
+
+              <AnimatePresence>
+                {showTerms && (
+                  <motion.div
+                    id="shipping-terms-content"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="mt-4 p-4 bg-surface-container-low rounded-xl text-[11px] text-on-surface-variant max-h-60 overflow-y-auto space-y-4 border border-outline-variant/30">
+                      <h4 className="font-bold text-on-surface text-sm mb-2 flex items-center gap-2">
+                        📦 Shipping Terms & Conditions
+                      </h4>
+                      
+                      <p className="font-semibold text-primary">🚚 Free Delivery Available Across India</p>
+                      
+                      <div>
+                        <h5 className="font-bold text-on-surface mb-1">Kerala Deliveries</h5>
+                        <ul className="space-y-1">
+                          <li>✔ All Kerala Orders Are Shipped Through Gokulam Speed & Safe Courier</li>
+                          <li>✔ Free Delivery Across Kerala</li>
+                          <li>✔ Estimated Delivery Time: 2–3 Working Days</li>
+                          <li>✔ Customers May Be Required To Collect Their Parcel From The Nearest Gokulam Speed & Safe Office Depending On Service Availability In Their Area</li>
+                        </ul>
+                      </div>
+                      
+                      <div>
+                        <h5 className="font-bold text-on-surface mb-1">Kerala Home Delivery Request</h5>
+                        <ul className="space-y-1">
+                          <li>✔ Home Delivery Through Delhivery Or India Post Is Available For An Additional Charge Of ₹100</li>
+                          <li>✔ Estimated Delivery Time: 7–10 Working Days</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h5 className="font-bold text-on-surface mb-1">Tamil Nadu Deliveries</h5>
+                        <ul className="space-y-1">
+                          <li>✔ Orders Are Shipped Through ST Courier</li>
+                          <li>✔ Free Delivery Across Tamil Nadu</li>
+                          <li>✔ Estimated Delivery Time: 4–5 Working Days</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h5 className="font-bold text-on-surface mb-1">Other State Deliveries</h5>
+                        <ul className="space-y-1">
+                          <li>✔ Orders Are Shipped Through Delhivery</li>
+                          <li>✔ Free Delivery Available Across India</li>
+                          <li>✔ Estimated Delivery Time: 9–12 Working Days</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h5 className="font-bold text-on-surface mb-1">Professional Courier Request</h5>
+                        <ul className="space-y-1">
+                          <li>✔ If Customers Prefer Professional Couriers For Other State Deliveries, An Additional Shipping Charge Of ₹100 Will Apply</li>
+                          <li>✔ Estimated Delivery Time: 5–7 Working Days</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h5 className="font-bold text-on-surface mb-1">Important Information</h5>
+                        <ul className="space-y-1">
+                          <li>✔ Pre-Booking Orders Only</li>
+                          <li>✔ Order Dispatching Time: 1–3 Working Days</li>
+                          <li>✔ Customers Will Receive Tracking Details Once The Order Is Dispatched</li>
+                          <li>✔ Delivery Time May Vary Due To Remote Locations, Holidays, Weather Conditions, Or Courier Delays</li>
+                          <li>✔ Please Ensure The Correct Shipping Address And Contact Number Are Provided While Ordering</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h5 className="font-bold text-on-surface mb-1">Urgent Orders</h5>
+                        <ul className="space-y-1">
+                          <li>✔ If You Need Your Order Urgently, Please Contact Us Before Placing Your Order</li>
+                          <li>✔ We Will Try To Arrange Faster Processing And Shipping Based On Availability</li>
+                          <li>✔ Urgent Shipping Support Is Available For Genuine Emergency Requirements Only</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h5 className="font-bold text-on-surface mb-1">Damage & Replacement Policy</h5>
+                        <ul className="space-y-1">
+                          <li>✔ Unboxing Video Is Mandatory For Any Damage, Missing Item, Or Replacement Claim</li>
+                          <li>✔ Claims Without A Complete Unboxing Video Will Not Be Accepted</li>
+                          <li>✔ The Unboxing Video Must Start Before Opening The Package And Clearly Show The Parcel Condition</li>
+                        </ul>
+                      </div>
+
+                      <div className="pt-2 border-t border-outline-variant/30 font-medium">
+                        <p>📲 For Order Updates And Support, Please Contact Us On WhatsApp.</p>
+                        <p className="mt-1">✨ Safe Packing • Trusted Courier Partners • Free Delivery Across India 🚚📦</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {showTerms && (
+                <label className="mt-4 flex items-start gap-3 text-sm text-on-surface cursor-pointer group">
+                  <div className="relative flex items-center justify-center mt-0.5">
+                    <input
+                      type="checkbox"
+                      checked={agreedToTerms}
+                      onChange={(e) => setAgreedToTerms(e.target.checked)}
+                      className="peer sr-only"
+                    />
+                    <div className="w-5 h-5 rounded border-2 border-outline-variant peer-checked:border-primary peer-checked:bg-primary transition-all flex items-center justify-center">
+                      <Check className="w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 transition-opacity" strokeWidth={3} />
+                    </div>
+                  </div>
+                  <span className="flex-1">I have read and agree to the Shipping Terms & Conditions.</span>
+                </label>
+              )}
             </div>
 
             {/* Footer */}

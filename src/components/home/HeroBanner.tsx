@@ -78,7 +78,7 @@ export default function HeroBanner({ onShopCollection, onExploreCategories }: He
         <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto w-full flex flex-col md:flex-row items-center justify-center md:justify-start">
+      <div className="relative z-10 max-w-7xl mx-auto w-full hidden md:flex flex-col md:flex-row items-center justify-center md:justify-start">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -108,9 +108,9 @@ export default function HeroBanner({ onShopCollection, onExploreCategories }: He
           </h1>
 
           <p className="text-sm md:text-base text-gray-600 max-w-lg leading-relaxed">
-            From first birthdays to festive celebrations, shop or personalise
-            snuggle-soft baby outfits for every sweet little milestone.
-          </p>
+  Premium personalised outfits for babies and kids, beautifully crafted for
+  every special ceremony, celebration, and precious family moment.
+</p>
 
           <div className="flex flex-wrap gap-2 justify-center md:justify-start">
             {CLOTHING_ITEMS.map((item) => (
@@ -128,7 +128,7 @@ export default function HeroBanner({ onShopCollection, onExploreCategories }: He
               <Star key={i} className="w-3.5 h-3.5 fill-tertiary text-tertiary" />
             ))}
             <span className="text-xs text-gray-500 ml-1">
-              Loved by 500+ happy families
+              Loved by 5000+ happy families
             </span>
           </div>
 

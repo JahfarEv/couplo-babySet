@@ -198,6 +198,17 @@ export default function MobileNav({
             </div>
           )}
 
+          {/* More Designs */}
+          <button
+            onClick={() => {
+              onClose();
+              window.open("https://whatsapp.com/channel/0029VbDWjLXAO7RN0fAEt91F", "_blank");
+            }}
+            className="text-left py-2 font-serif font-semibold text-lg text-primary border-b border-primary/5 flex justify-between cursor-pointer"
+          >
+            More Designs <ChevronRight className="w-4 h-4 text-outline" />
+          </button>
+
           {/* Shopping Bag */}
           <button
             onClick={() => {
