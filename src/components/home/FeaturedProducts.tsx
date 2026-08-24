@@ -158,7 +158,7 @@ const FeaturedProducts = forwardRef<HTMLDivElement, FeaturedProductsProps>(
             </div>
           )}
 
-          {!loading && totalPages > 1 && (
+          {!loading && totalPages > 1 && (categoryFilter === "all" || products.length >= 12) && (
             <div className="mt-10 flex items-center justify-center gap-2">
               {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
                 <button

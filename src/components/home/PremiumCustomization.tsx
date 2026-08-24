@@ -1,5 +1,4 @@
 // components/home/PremiumCustomization.tsx
-import { motion } from "motion/react";
 import { 
   Paintbrush, 
   Heart, 
@@ -45,16 +44,13 @@ export default function PremiumCustomization() {
       <div className="max-w-7xl mx-auto">
         {/* Heading Section */}
         <div className="text-center mb-12">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+          <div
             className="inline-flex items-center gap-2 text-[11px] uppercase tracking-widest font-bold text-primary bg-primary-container/30 px-5 py-2 rounded-full border border-primary/10 mb-4"
           >
             <Sparkles className="h-3.5 w-3.5" />
             <span>Premium Customization</span>
             <Sparkles className="h-3.5 w-3.5" />
-          </motion.div>
+          </div>
           
           {/* <motion.h2 
             initial={{ opacity: 0, y: 20 }}
@@ -109,10 +105,7 @@ export default function PremiumCustomization() {
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Column - Customization Options */}
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
+          <div
             className="bg-white rounded-3xl shadow-xl border border-primary/10 p-6 md:p-8"
           >
             <div className="flex items-center gap-3 mb-6">
@@ -126,12 +119,9 @@ export default function PremiumCustomization() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {CUSTOMIZATION_OPTIONS.map((option, index) => (
-                <motion.div
+              {CUSTOMIZATION_OPTIONS.map((option) => (
+                <div
                   key={option.label}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
                   className="flex items-center gap-3 bg-surface-container-low rounded-xl p-3 border border-outline-variant/10 hover:border-primary/30 hover:bg-primary/5 transition-all group cursor-default"
                 >
                   <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
@@ -140,7 +130,7 @@ export default function PremiumCustomization() {
                   <span className="text-sm text-on-surface-variant group-hover:text-on-surface transition-colors font-medium">
                     {option.label}
                   </span>
-                </motion.div>
+                </div>
               ))}
             </div>
 
@@ -150,13 +140,10 @@ export default function PremiumCustomization() {
                 Making It Unique And Memorable For Your Baby's Special Occasion.
               </p>
             </div>
-          </motion.div>
+          </div>
 
           {/* Right Column - Why Parents Love */}
-          <motion.div 
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
+          <div
             className="bg-white rounded-3xl shadow-xl border border-primary/10 p-6 md:p-8"
           >
             <div className="flex items-center gap-3 mb-6">
@@ -170,43 +157,37 @@ export default function PremiumCustomization() {
             </div>
 
             <div className="space-y-2.5">
-              {PARENT_LOVE_REASONS.map((reason, index) => (
-                <motion.div
+              {PARENT_LOVE_REASONS.map((reason) => (
+                <div
                   key={reason}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
                   className="flex items-center gap-3 bg-surface-container-low rounded-xl p-3 border border-outline-variant/10 hover:border-primary/30 transition-all"
                 >
                   <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
                     <BadgeCheck className="w-4 h-4 text-primary" />
                   </div>
                   <span className="text-sm text-on-surface-variant">{reason}</span>
-                </motion.div>
+                </div>
               ))}
             </div>
-          </motion.div>
+          </div>
         </div>
 
         {/* Bottom Action Section */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
+        <div
           className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4"
         >
           {/* WhatsApp CTA */}
-          <div className="bg-gradient-to-br from-[#25D366]/10 to-white rounded-2xl shadow-xl border border-[#25D366]/20 p-6 flex items-center gap-4">
+          <div className="bg-gradient-to-br from-[#25D366]/10 to-white rounded-2xl shadow-xl border border-[#25D366]/20 p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-4">
             <div className="p-3 bg-[#25D366]/20 rounded-2xl flex-shrink-0">
               <MessageCircleHeart className="w-6 h-6 text-[#25D366]" />
             </div>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <h4 className="font-bold text-on-surface text-sm mb-0.5">Order via WhatsApp</h4>
               <p className="text-xs text-on-surface-variant">
-                Share your baby's name and design requirements. We'll create a beautiful custom romper.
+                Share your baby's name and design details for a custom romper.
               </p>
             </div>
-            <button className="flex-shrink-0 bg-[#25D366] text-white px-4 py-2 rounded-full text-xs font-medium hover:bg-[#20bd5a] transition-colors">
+            <button className="self-start sm:self-auto flex-shrink-0 bg-[#25D366] text-white px-4 py-2 rounded-full text-xs font-medium hover:bg-[#20bd5a] transition-colors">
               Order Now
             </button>
           </div>
@@ -222,13 +203,10 @@ export default function PremiumCustomization() {
               <p className="text-xs font-medium text-on-surface">Pre-Booking Only</p>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Bottom Message */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.7 }}
+        <div
           className="mt-8 text-center bg-gradient-to-r from-primary/5 via-white to-secondary/5 rounded-2xl border border-primary/10 p-4 md:p-5"
         >
           <p className="text-sm md:text-base text-on-surface-variant font-medium flex flex-wrap items-center justify-center gap-2 md:gap-3">
@@ -242,7 +220,7 @@ export default function PremiumCustomization() {
             <span>Pre-Booking Available</span>
             <span>👶🤍🎨🚚</span>
           </p>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

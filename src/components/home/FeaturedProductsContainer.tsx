@@ -78,7 +78,7 @@ export default function FeaturedProductsContainer({
     currentPage: productsCurrentPage,
     totalPages: productsTotalPages,
     goToPage: goToProductsPage,
-  } = useUserProducts(priceRange);
+  } = useUserProducts(priceRange, categoryFilter);
   const { categories } = useCategories();
   const sectionRef = useRef<HTMLDivElement>(null);
 
