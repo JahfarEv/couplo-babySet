@@ -57,7 +57,7 @@ export default function App() {
     currentPage: productsCurrentPage,
     totalPages: productsTotalPages,
     goToPage: goToProductsPage,
-  } = useUserProducts(priceRange);
+  } = useUserProducts(priceRange, categoryFilter);
   const completedOrderCounts = useCompletedOrderCounts();
   const { categories, loading: categoriesLoading } = useCategories();
 

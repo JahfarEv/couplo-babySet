@@ -61,7 +61,10 @@ const mapProduct = (doc: QueryDocumentSnapshot<DocumentData>): Product | null =>
   return product.status?.toLowerCase() === "active" ? product : null
 }
 
-export function useUserProducts(priceRange: ProductPriceRange = "all") {
+export function useUserProducts(
+  priceRange: ProductPriceRange = "all",
+  categoryFilter: string = "all",
+) {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingPage, setLoadingPage] = useState(false)
@@ -96,7 +99,7 @@ export function useUserProducts(priceRange: ProductPriceRange = "all") {
         .filter((product): product is Product => product !== null)
       return lastDocument
     },
-    [],
+    [categoryFilter, priceRange],
   )
 
   useEffect(() => {
@@ -149,7 +152,7 @@ export function useUserProducts(priceRange: ProductPriceRange = "all") {
     return () => {
       cancelled = true
     }
-  }, [priceRange])
+  }, [priceRange, categoryFilter])
 
   const goToPage = useCallback(async (pageNumber: number) => {
     if (pageNumber < 1 || pageNumber > totalPages || pageNumber === currentPage || loadingPageRef.current) return
