@@ -626,7 +626,7 @@ const CuratedCollections = forwardRef<HTMLDivElement, CuratedCollectionsProps>(
       <h3 className="text-xl sm:text-2xl lg:text-3xl font-serif font-bold text-white mb-2 drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)] tracking-wide">
         More Designs
       </h3>
-      <p className="text-sm sm:text-base text-white/90 font-light leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)] max-w-md">
+      <p className="hidden sm:block text-sm sm:text-base text-white/90 font-light leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)] max-w-md">
         Discover beautiful designs for every special occasion
       </p>
       

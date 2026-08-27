@@ -178,16 +178,25 @@ export default function PremiumCustomization() {
         >
           {/* WhatsApp CTA */}
           <div className="bg-gradient-to-br from-[#25D366]/10 to-white rounded-2xl shadow-xl border border-[#25D366]/20 p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-4">
-            <div className="p-3 bg-[#25D366]/20 rounded-2xl flex-shrink-0">
-              <MessageCircleHeart className="w-6 h-6 text-[#25D366]" />
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="p-3 bg-[#25D366]/20 rounded-2xl flex-shrink-0">
+                <MessageCircleHeart className="w-6 h-6 text-[#25D366]" />
+              </div>
+              <div className="min-w-0">
+                <h4 className="font-bold text-on-surface text-sm mb-0.5">Order via WhatsApp</h4>
+                <p className="text-xs text-on-surface-variant">
+                  Share your baby's name and design details for a custom romper.
+                </p>
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <h4 className="font-bold text-on-surface text-sm mb-0.5">Order via WhatsApp</h4>
-              <p className="text-xs text-on-surface-variant">
-                Share your baby's name and design details for a custom romper.
-              </p>
-            </div>
-            <button className="self-start sm:self-auto flex-shrink-0 bg-[#25D366] text-white px-4 py-2 rounded-full text-xs font-medium hover:bg-[#20bd5a] transition-colors">
+            <button
+              onClick={() =>
+                document
+                  .getElementById("featured-products")
+                  ?.scrollIntoView({ behavior: "smooth", block: "start" })
+              }
+              className="w-full sm:w-auto flex-shrink-0 bg-[#25D366] text-white px-4 py-2 rounded-full text-xs font-medium hover:bg-[#20bd5a] transition-colors"
+            >
               Order Now
             </button>
           </div>
