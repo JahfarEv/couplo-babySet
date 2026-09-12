@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, useEffect } from "react";
+﻿import { useMemo, useRef, useState, useEffect } from "react";
 import { CategoryFilter, Product, User, CartItem } from "./types";
 import { useUserProducts, ProductPriceRange } from "./hooks/useProducts"; // ✅ Import the hook
 import { useCategories } from "./hooks/useCategories";
@@ -296,7 +296,7 @@ export default function App() {
     setCartOpen(false);
 
     const encoded = encodeURIComponent(message);
-    window.open(`https://wa.me/919539794665?text=${encoded}`, "_blank");
+    window.open(`https://wa.me/918590288151?text=${encoded}`, "_blank");
 
     showToast("Checkout initiated! WhatsApp chat opened and order saved.", "success");
     setActiveView("auth");
