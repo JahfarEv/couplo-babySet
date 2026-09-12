@@ -679,39 +679,38 @@ const getEmbroideryText = (customization: any): string | undefined => {
   return nullToUndefined(customization.embroideredText || customization.babyName);
 };
 
-const formatWebOrderId = (orderNumber: number): string => {
-  return `web-${1000 + orderNumber}`;
-};
+const formatWebOrderId = (orderNumber: number): string => `web-${1000 + orderNumber}`;
 
+// Use Firestore when available so multiple clients share one sequence.
 const getNextWebOrderId = async (): Promise<string> => {
   const counterRef = doc(db, "counters", "orders");
 
   return runTransaction(db, async (transaction) => {
     const counterSnap = await transaction.get(counterRef);
-    const lastOrderNumber = counterSnap.exists()
+    const storedValue = counterSnap.exists()
       ? Number(counterSnap.data().lastWebOrderNumber || 0)
       : 0;
-    const nextOrderNumber = lastOrderNumber + 1;
 
-    transaction.set(
-      counterRef,
-      {
-        lastWebOrderNumber: nextOrderNumber,
-        updatedAt: new Date().toISOString(),
-      },
-      { merge: true },
-    );
+    // Older versions stored an offset (1 => web-1001). Convert that value so
+    // existing counters continue from the correct number.
+    const nextNumber = storedValue >= 1000 ? storedValue - 1000 + 1 : storedValue + 1;
 
-    return formatWebOrderId(nextOrderNumber);
+    transaction.set(counterRef, {
+      lastWebOrderNumber: nextNumber,
+      updatedAt: new Date().toISOString(),
+    }, { merge: true });
+
+    return formatWebOrderId(nextNumber);
   });
 };
 
+// Keep checkout working when the Firebase rules do not yet allow the counter
+// document. This preserves the previously working order-save flow.
 const getFallbackWebOrderId = (): string => {
   const storageKey = "couplo_web_order_counter";
-  const lastOrderNumber =
-    typeof window !== "undefined"
-      ? Number(window.localStorage.getItem(storageKey) || 0)
-      : 0;
+  const lastOrderNumber = typeof window !== "undefined"
+    ? Number(window.localStorage.getItem(storageKey) || 0)
+    : 0;
   const nextOrderNumber = lastOrderNumber + 1;
 
   if (typeof window !== "undefined") {
@@ -725,7 +724,7 @@ const getSafeWebOrderId = async (): Promise<string> => {
   try {
     return await getNextWebOrderId();
   } catch (error) {
-    console.warn("Unable to update Firestore order counter. Using local fallback order id:", error);
+    console.warn("Unable to update Firestore order counter; using local order number:", error);
     return getFallbackWebOrderId();
   }
 };
@@ -810,6 +809,7 @@ export const orderService = {
         docId = orderId;
         console.log("✅ Order created in Firestore with ID:", docId);
       } catch (fsErr) {
+        throw fsErr;
         console.warn("⚠️ Firestore addDoc failed, using local order fallback:", fsErr);
       }
 
@@ -908,6 +908,7 @@ export const orderService = {
         docId = orderId;
         console.log("✅ Single order created in Firestore with ID:", docId);
       } catch (fsErr) {
+        throw fsErr;
         console.warn("⚠️ Firestore addDoc failed for single order:", fsErr);
       }
 
