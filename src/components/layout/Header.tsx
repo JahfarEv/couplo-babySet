@@ -9,7 +9,7 @@ interface HeaderProps {
   onCloseMobileMenu: () => void;
   onOpenSearch: () => void;
   onCategoryClick: (category: CategoryFilter) => void;
-  activeView: "home" | "auth";
+  activeView: "home" | "auth" | "order-confirmation";
   currentUser: User | null;
   onAccountClick: () => void;
   onLogoClick: () => void;

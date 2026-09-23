@@ -1,4 +1,4 @@
-﻿import { useMemo, useRef, useState, useEffect } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import { CategoryFilter, Product, User, CartItem } from "./types";
 import { useUserProducts, ProductPriceRange } from "./hooks/useProducts"; // ✅ Import the hook
 import { useCategories } from "./hooks/useCategories";
@@ -33,6 +33,7 @@ import ScrollToTopButton from "./components/overlays/ScrollToTopButton";
 import AuthPage from "./components/auth/AuthPage";
 import CartDrawer from "./components/overlays/CartDrawer";
 import CustomizationModal from "./components/overlays/CustomizationModal";
+import OrderConfirmationPage, { PendingOrderData } from "./components/pages/OrderConfirmationPage";
 
 export default function App() {
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
@@ -42,7 +43,8 @@ export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [activeView, setActiveView] = useState<"home" | "auth">("home");
+  const [activeView, setActiveView] = useState<"home" | "auth" | "order-confirmation">("home");
+  const [pendingOrderData, setPendingOrderData] = useState<PendingOrderData | null>(null);
   const [productToShowAfterLogin, setProductToShowAfterLogin] = useState<Product | null>(null);
   const [pendingScrollTarget, setPendingScrollTarget] = useState<"featured" | "collections" | null>(null);
 
@@ -371,60 +373,77 @@ console.log("⏳ Loading state:", productsLoading);
     if (intent === "order") {
       if (!currentUser) return;
 
-      const total = product.price * quantity;
-
-      // Save order first to get the real Firebase document ID
-      const savedOrder = await orderService.createSingleOrder(currentUser, product, quantity, {
-        ...customization,
+      // Store the pending order data and navigate to confirmation page
+      setPendingOrderData({
+        product,
+        quantity,
         selectedSize,
         selectedColor,
-      }, "", false);
-      if (!savedOrder) {
-        showToast("Could not save your order to Firebase. Please try again.", "info");
-        return;
-      }
-
-      const orderId = savedOrder.orderId || savedOrder.id || "N/A";
-
-      // Build the formatted WhatsApp message with the real Firebase order ID
-      let message = `Hi Couplo Baby Sets! 🌸\n\n`;
-      message += `🆔 *Order ID:* ${orderId}\n\n`;
-      message += `📦 *Product:* ${product.name}\n`;
-      message += `💰 *Price:* ₹${total.toFixed(2)}\n`;
-      if (selectedSize) message += `📏 *Size:* ${selectedSize}\n`;
-      if (selectedColor) message += `🎨 *Color:* ${selectedColor}\n`;
-      if (customization) {
-        message += `\n✨ *Customization Details*\n`;
-        if (customization.contactNumber) message += `• Customer WhatsApp: *${customization.contactNumber}*\n`;
-        if (customization.babyName) message += `• Baby's Name: ${customization.babyName}\n`;
-        if (customization.babyAge) message += `• Baby's Age: ${customization.babyAge}\n`;
-        if (customization.romperName) message += `• Name in Romper: ${customization.romperName}\n`;
-        if (customization.capName) message += `• Name in Cap: ${customization.capName}\n`;
-        if (customization.bow) message += `• Bow: ${customization.bow}\n`;
-        if (customization.designImageName) {
-          message += `• Design Image: ${customization.designImageName}\n`;
-          if (customization.designImageUrl) message += `  🔗 Link: ${customization.designImageUrl}\n`;
-        }
-        if (customization.embroideryText || (customization as any).embroideredText) message += `• Embroidery Text: ${customization.embroideryText || (customization as any).embroideredText}\n`;
-        if (customization.giftWrap) {
-          message += `• Gift Wrapping: Yes 🎁\n`;
-          if (customization.giftMessage) message += `• Gift Card Message: "${customization.giftMessage}"\n`;
-        }
-        if (customization.specialNotes) message += `• Special Instructions: ${customization.specialNotes}\n`;
-      }
-      message += `\n💵 *Total Amount:* ₹${total.toFixed(2)}\n`;
-      message += `👤 *Customer:* ${currentUser.name} (${currentUser.email})\n\n`;
-      message += `Please let me know availability and production timeline.\nThank you! ✨`;
-
-      const encoded = encodeURIComponent(message);
-      window.open(`https://wa.me/918590288151?text=${encoded}`, "_blank");
-
-      showToast("Direct order initiated! WhatsApp chat opened and order saved.", "success");
-      setActiveView("auth");
+        customization,
+      });
+      setActiveView("order-confirmation");
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
       handleAddToCart(product, quantity, selectedSize, selectedColor, customization);
       showToast(`✨ Customized ${product.name} added to your bag!`, "success");
     }
+  };
+
+  const handleOrderConfirmationConfirm = async () => {
+    if (!pendingOrderData || !currentUser) return;
+
+    const { product, quantity, selectedSize, selectedColor, customization } = pendingOrderData;
+    const total = product.price * quantity;
+
+    // Save order first to get the real Firebase document ID
+    const savedOrder = await orderService.createSingleOrder(currentUser, product, quantity, {
+      ...customization,
+      selectedSize,
+      selectedColor,
+    }, "", false);
+    if (!savedOrder) {
+      showToast("Could not save your order to Firebase. Please try again.", "info");
+      return;
+    }
+
+    const orderId = savedOrder.orderId || savedOrder.id || "N/A";
+
+    // Build the formatted WhatsApp message with the real Firebase order ID
+    let message = `Hi Couplo Baby Sets! 🌸\n\n`;
+    message += `🆔 *Order ID:* ${orderId}\n\n`;
+    message += `📦 *Product:* ${product.name}\n`;
+    message += `💰 *Price:* ₹${total.toFixed(2)}\n`;
+    if (selectedSize) message += `📏 *Size:* ${selectedSize}\n`;
+    if (selectedColor) message += `🎨 *Color:* ${selectedColor}\n`;
+    if (customization) {
+      message += `\n✨ *Customization Details*\n`;
+      if (customization.contactNumber) message += `• Customer WhatsApp: *${customization.contactNumber}*\n`;
+      if (customization.babyName) message += `• Baby's Name: ${customization.babyName}\n`;
+      if (customization.babyAge) message += `• Baby's Age: ${customization.babyAge}\n`;
+      if (customization.romperName) message += `• Name in Romper: ${customization.romperName}\n`;
+      if (customization.capName) message += `• Name in Cap: ${customization.capName}\n`;
+      if (customization.bow) message += `• Bow: ${customization.bow}\n`;
+      if (customization.designImageName) {
+        message += `• Design Image: ${customization.designImageName}\n`;
+        if (customization.designImageUrl) message += `  🔗 Link: ${customization.designImageUrl}\n`;
+      }
+      if (customization.embroideryText || (customization as any).embroideredText) message += `• Embroidery Text: ${customization.embroideryText || (customization as any).embroideredText}\n`;
+      if (customization.giftWrap) {
+        message += `• Gift Wrapping: Yes 🎁\n`;
+        if (customization.giftMessage) message += `• Gift Card Message: "${customization.giftMessage}"\n`;
+      }
+      if (customization.specialNotes) message += `• Special Instructions: ${customization.specialNotes}\n`;
+    }
+    message += `\n💵 *Total Amount:* ₹${total.toFixed(2)}\n`;
+    message += `👤 *Customer:* ${currentUser.name} (${currentUser.email})\n\n`;
+    message += `Please let me know availability and production timeline.\nThank you! ✨`;
+
+    const encoded = encodeURIComponent(message);
+    window.open(`https://wa.me/918590288151?text=${encoded}`, "_blank");
+
+    setPendingOrderData(null);
+    showToast("Direct order initiated! WhatsApp chat opened and order saved.", "success");
+    setActiveView("auth");
   };
 
   return (
@@ -511,6 +530,27 @@ console.log("⏳ Loading state:", productsLoading);
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
           />
+        ) : activeView === "order-confirmation" && pendingOrderData && currentUser ? (
+          <OrderConfirmationPage
+            orderData={pendingOrderData}
+            currentUser={currentUser}
+            onConfirm={handleOrderConfirmationConfirm}
+            onBack={() => {
+              // Re-open the customization modal with the pending data
+              const data = pendingOrderData;
+              setPendingOrderData(null);
+              setActiveView("home");
+              customizationFlow.openCustomization(data.product, "order", {
+                size: data.selectedSize,
+                color: data.selectedColor,
+                quantity: data.quantity,
+              });
+              // Restore the customization fields
+              Object.entries(data.customization).forEach(([key, value]) => {
+                customizationFlow.updateCustomization({ [key]: value });
+              });
+            }}
+          />
         ) : (
           <>
             <HeroBanner
@@ -559,7 +599,7 @@ console.log("⏳ Loading state:", productsLoading);
         categories={categories}
         categoriesLoading={categoriesLoading}
       /> */}
-      {activeView !== "auth" && (
+      {activeView !== "auth" && activeView !== "order-confirmation" && (
   <Footer
     onCategoryClick={(cat) => {
       handleCategoryBlockClick(cat);
