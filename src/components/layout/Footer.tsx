@@ -95,6 +95,16 @@ export default function Footer({
                 Returns &amp; Claims
               </button>
             </li>
+            <li>
+              <a
+                href="https://couplobabyset-max.github.io/couplo-app/track.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block hover:text-primary transition-colors hover:underline"
+              >
+                Track Your Order
+              </a>
+            </li>
           </ul>
         </div>
 

@@ -14,7 +14,11 @@ import {
 } from "lucide-react";
 import { Product, User as UserType } from "../../types";
 import { CustomizationDetails } from "../../types/customization";
-
+declare global {
+  interface Window {
+    fbq?: (...args: any[]) => void;
+  }
+}
 export interface PendingOrderData {
   product: Product;
   quantity: number;
@@ -39,6 +43,22 @@ export default function OrderConfirmationPage({
   const { product, quantity, selectedSize, selectedColor, customization } = orderData;
   const total = product.price * quantity;
 
+  const trackPurchase = () => {
+  if (typeof window.fbq !== "function") return;
+
+  window.fbq("track", "Purchase", {
+    value: total,
+    currency: "INR",
+    content_ids: [product.id],
+    content_name: product.name,
+    content_type: "product",
+    quantity: quantity,
+  });
+};
+
+
+
+  
   // Build summary rows
   const customizationRows: { label: string; value: string; icon?: React.ReactNode }[] = [];
 
@@ -75,6 +95,9 @@ export default function OrderConfirmationPage({
   if (customization.additionalNotes) {
     customizationRows.push({ label: "Additional Notes", value: customization.additionalNotes });
   }
+
+
+
 
   return (
     <div className="min-h-screen bg-background py-8 px-4">
@@ -256,14 +279,17 @@ export default function OrderConfirmationPage({
           transition={{ delay: 0.5 }}
           className="flex flex-col gap-3"
         >
-          <button
-            id="confirm-order-btn"
-            onClick={onConfirm}
-            className="w-full flex items-center justify-center gap-2.5 py-4 rounded-2xl bg-[#25D366] hover:bg-[#20bd5a] text-white text-base font-bold shadow-lg hover:shadow-xl transition-all cursor-pointer border-none active:scale-[0.98]"
-          >
-            <Headphones className="w-5 h-5 fill-white text-transparent stroke-[1]" />
-            Confirm & Send via WhatsApp
-          </button>
+      <button
+  id="confirm-order-btn"
+  onClick={() => {
+    trackPurchase();
+    onConfirm();
+  }}
+  className="w-full flex items-center justify-center gap-2.5 py-4 rounded-2xl bg-[#25D366] hover:bg-[#20bd5a] text-white text-base font-bold shadow-lg hover:shadow-xl transition-all cursor-pointer border-none active:scale-[0.98]"
+>
+  <Headphones className="w-5 h-5 fill-white text-transparent stroke-[1]" />
+  Confirm & Send via WhatsApp
+</button>
 
           <button
             id="confirm-back-btn"
