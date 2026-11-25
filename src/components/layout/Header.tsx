@@ -120,6 +120,14 @@ console.log(categories, 'category');
           >
             More Designs
           </button>
+          <a
+            href="https://couplobabyset-max.github.io/couplo-app/track.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm font-semibold text-on-surface-variant hover:text-primary hover:underline underline-offset-4 decoration-primary/20 transition-all"
+          >
+            Track Your Order
+          </a>
         </nav>
 
         <div className="flex items-center text-primary gap-4">

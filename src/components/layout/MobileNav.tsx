@@ -209,6 +209,16 @@ export default function MobileNav({
             More Designs <ChevronRight className="w-4 h-4 text-outline" />
           </button>
 
+          <a
+            href="https://couplobabyset-max.github.io/couplo-app/track.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={onClose}
+            className="text-left py-2 font-serif font-semibold text-lg text-primary border-b border-primary/5 flex justify-between items-center"
+          >
+            Track Your Order <ChevronRight className="w-4 h-4 text-outline" />
+          </a>
+
           {/* Shopping Bag */}
           <button
             onClick={() => {
